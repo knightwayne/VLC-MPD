@@ -11472,10 +11472,6 @@ msgstr "ವಿವರಣಾತ್ಮಕ ಉಪಶೀರ್ಷಿಕೆಗಳ �
 msgid "CDG video decoder"
 msgstr "CDG ವೀಡಿಯೊ ವಿಸಂಕೇತಕ"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "ಕ್ರಿಸ್ಟಲ್ HD ಯಂತ್ರಾಂಶ ವೀಡಿಯೊ ವಿಸಂಕೇತಕ"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "CVD ಯ ಉಪಶೀರ್ಷಿಕೆ ವಿಸಂಕೇತಕ"
@@ -30049,6 +30045,9 @@ msgstr "AAAA;"
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "ಮಾಧ್ಯಮ ಮ್ಯಾನೇಜರ್ ಪಟ್ಟಿ"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "ಕ್ರಿಸ್ಟಲ್ HD ಯಂತ್ರಾಂಶ ವೀಡಿಯೊ ವಿಸಂಕೇತಕ"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

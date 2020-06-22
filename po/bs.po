@@ -10924,10 +10924,6 @@ msgstr "Dekoder Zaključanih natpisa"
 msgid "CDG video decoder"
 msgstr "CDG video dekoder"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "Kristalni HD hardverski video dekoder"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "CVD dekoder podtitla"
@@ -28497,6 +28493,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Upravljanje Listom Medija"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Kristalni HD hardverski video dekoder"
 
 #~ msgid "Sound fonts"
 #~ msgstr "Zvučni fontovi"

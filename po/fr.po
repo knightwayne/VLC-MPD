@@ -11641,10 +11641,6 @@ msgstr "Décodeurs de sous-titres pour malentendants"
 msgid "CDG video decoder"
 msgstr "Décodeur vidéo CDG"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "Décodeur vidéo matériel Crystal HD"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "Décodeur de sous-titres CVD"
@@ -30424,6 +30420,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Liste du gestionnaire de médias"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Décodeur vidéo matériel Crystal HD"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

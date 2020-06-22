@@ -11323,11 +11323,6 @@ msgstr ""
 msgid "CDG video decoder"
 msgstr "Filtris audio"
 
-#: modules/codec/crystalhd.c:90
-#, fuzzy
-msgid "Crystal HD hardware video decoder"
-msgstr "Filtris audio"
-
 #: modules/codec/cvdsub.c:50
 #, fuzzy
 msgid "CVD subtitle decoder"
@@ -30655,6 +30650,10 @@ msgstr ""
 #, fuzzy
 msgid "Media Manager List"
 msgstr "Meta-informazions"
+
+#, fuzzy
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Filtris audio"
 
 #, fuzzy
 #~ msgid "Capture region heigh"
