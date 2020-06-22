@@ -1,6 +1,7 @@
 controldir = $(pluginsdir)/control
 
 libdummy_plugin_la_SOURCES = control/dummy.c control/intromsg.h
+libmpd_plugin_la_SOURCES = control/mpd.c
 libgestures_plugin_la_SOURCES = control/gestures.c
 libhotkeys_plugin_la_SOURCES = control/hotkeys.c
 libhotkeys_plugin_la_LIBADD = $(LIBM)
@@ -13,6 +14,7 @@ librc_plugin_la_LIBADD = $(SOCKET_LIBS) $(LIBM)
 
 control_LTLIBRARIES = \
 	libdummy_plugin.la \
+	libmpd_plugin.la \
 	libgestures_plugin.la \
 	libhotkeys_plugin.la \
 	librc_plugin.la
