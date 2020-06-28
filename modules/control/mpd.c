@@ -7,37 +7,66 @@
 #include <vlc_common.h>
 #include <vlc_plugin.h>
 #include <vlc_interface.h>
+/*Added during MPD Development*/
 #include <vlc_fs.h>
 #include <vlc_network.h>
-// #include <vlc_objects.h>
-// #include <vlc_variables.h>
-#define PORT 6600
-// Request at - http://192.168.0.101:6600/
 
+
+/*Port and Address to look up at Request at - http://192.168.0.101:6600*/
+#define PORT 6600
+
+/*<---------------------------Core MPD Server----------------------------->*/
+
+//System Variables Declaration Here.
 struct intf_sys_t
 {
-    //define variables needed for the module
+    //xxxxx
+    int serverFD;
+    vlc_thread_t th;
 };
 
-void *thread_func(void *arg)
+void *thread_func(void *arg) //Parsing Polling Listening to Requests
 {
-    //thread has a charString variable to be added for keep listening to requests until stopped, and closed in close(); 
-
     intf_thread_t *intfa = (intf_thread_t *)arg;
-    // char *a = vlc_getcwd();
-    // msg_Info(intfa, "%s!", a);
+    msg_Info(intfa, "Hello from thread side!");
+    int server_fd=intfa->p_sys->serverFD;
+
+    //thread work;
+    int client_fd;
+    struct sockaddr_in clientAddr;
+    int clientAddrLen = sizeof(clientAddr);
+
+    // Listening to clients
+    if (listen(server_fd, SOMAXCONN) < 0)
+    {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+
+    //Select case handling-------------------------------------------------------
+
+    // New Connection Comes, Handling It
+    if ((client_fd = accept(server_fd, (struct sockaddr *)&clientAddr, (socklen_t *)&clientAddrLen)) < 0)
+    {
+        perror("accept");
+        exit(EXIT_FAILURE);
+    }
+
+
+
+    //Select case handling---
 
     //Parsing
-    char *vlc ="dummy"; //dummy valid command like play pause
+    char *vlc = "dummy"; //dummy valid command like play pause
 
-    while (1)           //is this (infinite while loop) the correct way to keep listensing requests in the background??
+    while (1) //is this (infinite while loop) the correct way to keep listensing requests in the background??
     {
         int n;
         char buffer[256];
 
         //Recieve
         bzero(buffer, 256);
-        n = read(new_socket, buffer, 255);  //new_socket to be passed as argument in intf;
+        n = read(client_fd, buffer, 255); //client_fd to be passed as argument in intf;
         if (n < 0)
             printf("ERROR reading from socket");
         else
@@ -46,15 +75,15 @@ void *thread_func(void *arg)
         }
 
         //Action & Send
-        if (!strcmp(buffer, vlc))   //one of the valid commands--MAIN ACTION AND PLAYBACK CONTROL HERE
+        if (!strcmp(buffer, vlc)) //one of the valid commands--MAIN ACTION AND PLAYBACK CONTROL HERE
         {
-            //send(new_socket, ok, strlen(ok), 0);
+            //send(client_fd, ok, strlen(ok), 0);
             printf("OK vlc opening\n");
             system(buffer);
         }
-        else                        //not one of the valid commands
+        else //not one of the valid commands
         {
-            //send(new_socket, nok, strlen(nok), 0);
+            //send(client_fd, nok, strlen(nok), 0);
             printf("Not OK Terminating\n");
             break;
         }
@@ -63,77 +92,84 @@ void *thread_func(void *arg)
     return NULL;
 }
 
+/*Open Module*/
 static int Open(vlc_object_t *obj)
 {
-    intf_thread_t *intf = (intf_thread_t *)obj;
+    intf_thread_t *intf = (intf_thread_t *)obj; //thread for interface debugging
     msg_Info(intf, "Hello World! MPD Server Started");
 
-    //SERVER CREATION--------------------------------------------
-    int server_fd, new_socket;
-    struct sockaddr_in address;
+    // Server Creation
+    // Initialising Server
+    int server_fd;
+    struct sockaddr_in serverAddr;
     int opt = 1;
-    int addrlen = sizeof(address);
+    //int serverAddrLen = sizeof(serverAddr);
 
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
-        perror("socket failed");
+        perror("Error Opening Socket. Socket Failed");
         exit(EXIT_FAILURE);
     }
+    bzero((char *)&serverAddr, sizeof(serverAddr));
 
-    // Forcefully attaching socket to the port 8080
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR /*| SO_REUSEPORT*/, &opt, sizeof(opt)))
+    // optional
+    // Forcefully attaching socket to the port 6600
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR /*SO_REUSEPORT*/, &opt, sizeof(opt)))
     {
         perror("setsockopt");
         exit(EXIT_FAILURE);
     }
 
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(PORT);
 
-    // Forcefully attaching socket to the port 8080
-    if (bind(server_fd, (struct sockaddr *)&address,
-             sizeof(address)) < 0)
+    // Forcefully attaching socket to the port 6600(binding)
+    if (bind(server_fd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
     {
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
-    if (listen(server_fd, 3) < 0)
-    {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
-    if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
-                             (socklen_t *)&addrlen)) < 0)
-    {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
 
-    //CREATING THREAD TO LISTEN TO REQUESTS--------------------------------------------------
-    intf_thread_t *intfa = (intf_thread_t *)obj;
-    vlc_thread_t th;
-    int i = vlc_clone(&th, thread_func, intfa, 0);
-    msg_Info(intfa, "%d!", i);
-    vlc_join(th, NULL);
+    // Thread Creation to listen to requests
+    intf_thread_t *intfa = (intf_thread_t *)obj;    //thread for passing objects;
+    vlc_thread_t mpd_t;
+    
+    intf_sys_t *sys = malloc(sizeof(*sys));
+    if (unlikely(sys == NULL))
+        return VLC_ENOMEM;
+    intfa->p_sys=sys;
+    sys->serverFD=server_fd;
+    sys->th=mpd_t;
+
+    int i = vlc_clone(&sys->th, thread_func, intfa, 0);
+    msg_Info(intfa, "Thread Started from Open() %d!", i);
 
     return VLC_SUCCESS;
+    //error case -> add go to statements if needed
 }
 
+/*Close Module*/
 static void Close(vlc_object_t *obj)
 {
     intf_thread_t *intf = (intf_thread_t *)obj;
+    intf_sys_t *sys = intf->p_sys;
+    
+    vlc_join(sys->th, NULL);
     msg_Info(intf, "Good bye MPD Server");
+    
+    //free(&sys->th);
+    free(sys->serverFD);
+    free(sys);
 }
 
 /* Module descriptor */
 vlc_module_begin()
     set_shortname(N_("MPD"))
-        set_description(N_("MPD Control Interface Module"))
-            set_capability("interface", 0)
-                set_callbacks(Open, Close)
-                    set_category(CAT_INTERFACE)
-    //add_string("variable", "world", "Target", "Whom to say hello to.", false) //?
-    vlc_module_end()
-
+    set_description(N_("MPD Control Interface Module"))
+    set_capability("interface", 0)
+    set_callbacks(Open, Close)
+    set_category(CAT_INTERFACE)
+    //add_string("variable", "world", "Target", "Whom to say hello to.", false) //--use case not known til now!
+vlc_module_end()

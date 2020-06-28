@@ -23,8 +23,6 @@ struct intf_sys_t
 
 static int Open(vlc_object_t *obj)
 {
-    intf_thread_t *intf = (intf_thread_t *)obj;
-
     //---------------------------------------------------------------------User code0
     //does not work, maybe not a single file system
     //intf_thread_t *intfa = (intf_thread_t *)obj;
@@ -109,6 +107,8 @@ static int Open(vlc_object_t *obj)
     // free(sysa);
 
     //---------------------------------------------------------------------END User Code4
+    
+    intf_thread_t *intf = (intf_thread_t *)obj;
 
     /* Allocate internal state */
     intf_sys_t *sys = malloc(sizeof(*sys));
