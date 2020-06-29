@@ -31,7 +31,7 @@
 
 // Function Declarations & System Variables Declaration Here.
 void *clientHandling(void *arg);
-void *parseRequest(int client_fd);
+void *parseRequest(int client_fd, fd_set* currentSockets);
 
 struct intf_sys_t
 {
@@ -51,29 +51,56 @@ struct intf_sys_t
 /*---------------------------------------MPD Server Code-------------------------------------------*/
 /*---------------------------------------MPD Server Code-------------------------------------------*/
 
-void* parseRequest(int client_fd)
+/*client request parsing function*/
+void* parseRequest(int client_fd, fd_set *currentSockets)
 {
     int n;
-    const char *vlc = "command";
-    const char *ok = "ack", *nok = "list";
     char buffer[1024];
-    //Recieve
+    char buffer1[1024];
     bzero(buffer, 1024);
 
-    if ((n = read(client_fd, buffer, 1023)) < 0) //client_fd to be passed as argument in intf;
+    if ((n = read(client_fd, buffer1, 1023)) < 0)
     {
         perror("read");
         exit(EXIT_FAILURE);
     }
 
-    printf("BufferSize: %ld \tBuffer %s \n", strlen(buffer), buffer);
-    //msg_Info(intfa, "BufferSize: %ld \tBuffer %s \n", strlen(buffer), buffer);
+    //printf("BufferSize: %ld \tBuffer %s \n", strlen(buffer1), buffer1);
+    
+    if(strlen(buffer1)!=0)
+    memcpy(buffer,buffer1,strlen(buffer)-1);
 
-    // 9. Action & Send
-    //Main Parsing Function
-    send(client_fd, nok, strlen(nok), 0);
+    if(strlen(buffer)==0)
+    {
+        printf("01BufferSize: %ld \tBuffer %s \n", strlen(buffer), buffer);
+        send(client_fd, "ACK", strlen("ACK"), 0); //add command list
+        FD_CLR(client_fd, currentSockets);
+    }
+    else if (!strcmp(buffer, "commands"))
+    {
+        printf("02BufferSize: %ld \tBuffer %s \n", strlen(buffer), buffer);
+        send(client_fd, "command list\nplay\npause", strlen("command list\nplay\npause"), 0); //add command list & send back
+    }
+    else if (!strcmp(buffer, "play"))
+    {
+        printf("03BufferSize: %ld \tBuffer %s \n", strlen(buffer), buffer);
+        send(client_fd, "play", strlen("play"), 0); //play
+    }
+    else if (!strcmp(buffer, "pause"))
+    {
+        printf("04BufferSize: %ld \tBuffer %s \n", strlen(buffer), buffer);
+        send(client_fd, "pause", strlen("pause"), 0); //pause
+    }
+    else//if no command is found.
+    {
+        printf("05BufferSize: %ld \tBuffer %s \n", strlen(buffer), buffer);
+        FD_CLR(client_fd, currentSockets); //when quit is called
+    }
+
+    return NULL;
 }
 
+/*client Handling thread*/
 void* clientHandling(void *arg) //Parsing Polling Listening to Requests
 {
     intf_thread_t *intfa = (intf_thread_t *)arg;
@@ -83,7 +110,6 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
     int client_fd;
     struct sockaddr_in clientAddr;
     int clientAddrLen = sizeof(clientAddr);
-    //struct VLC_VECTOR(int) vec = VLC_VECTOR_INITIALIZER;
 
 
     // 7. Listening to clients
@@ -100,7 +126,7 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
     FD_SET(server_fd,&currentSockets);  //adding server_fd to currentSockets
 
 
-    // 9. EVENT LOOP
+    // 9. EVENT LOOP ->to listen to changes
     while(true)
     {
         readySockets=currentSockets;
@@ -109,30 +135,25 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
             perror("select");
             exit(EXIT_FAILURE);
         }
-        //msg_Info(intfa, "Enter for loop\n");
 
         for (int i = 0; i < FD_SETSIZE; i++)
         {
             if(FD_ISSET(i,&readySockets))
             {
-                if(i==server_fd) //read instructions pending at server - ie accept pending at server
+                if(i==server_fd) //server accept condition
                 {
-                    // New Connection Comes, Handling It
                     if ((client_fd = accept(server_fd, (struct sockaddr *)&clientAddr, (socklen_t *)&clientAddrLen)) < 0)
                     {
                         perror("accept");
                         exit(EXIT_FAILURE);
                     }
-                    FD_SET(client_fd,&currentSockets);  //next time if read instructions are pending at client_fd, so to check them
-                    //vlc_vector_push(&vec,client_fd);    //pushing in client_fd, to maintain vector of clients 
+                    FD_SET(client_fd,&currentSockets);
                 }
-                else //read pending at client_fd
+                else //client pending read connection
                 {
-                    // Handle Client Request 
                     client_fd = i;
-                    msg_Info(intfa, "client_fd %d\n", i);
-                    parseRequest(client_fd);
-                    //FD_CLR(i,&currentSockets);    //after client_fd is handled, we can free it
+                    msg_Info(intfa, "client_fd read-> %d\n", i);
+                    parseRequest(client_fd,&currentSockets);
                 }
             }//if
         }//for
