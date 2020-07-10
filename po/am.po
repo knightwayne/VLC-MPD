@@ -11306,11 +11306,6 @@ msgstr ""
 msgid "CDG video decoder"
 msgstr "የቪድዮ ኮዴክ "
 
-#: modules/codec/crystalhd.c:90
-#, fuzzy
-msgid "Crystal HD hardware video decoder"
-msgstr "የቪድዮ ኮዴክ "
-
 #: modules/codec/cvdsub.c:50
 #, fuzzy
 msgid "CVD subtitle decoder"
@@ -29884,6 +29879,10 @@ msgstr ""
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "የማህደረ መረጃ አስተዳዳሪ ዝርዝር "
+
+#, fuzzy
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "የቪድዮ ኮዴክ "
 
 #, fuzzy
 #~ msgid "Capture region heigh"

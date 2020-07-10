@@ -11229,10 +11229,6 @@ msgstr "Suletud pealdiste dekooder"
 msgid "CDG video decoder"
 msgstr "CDG video dekooder"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "Crystal HD riistvaraline video dekooder"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "CVD subtiitrite dekooder"
@@ -29356,6 +29352,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Meediahalduri loend"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Crystal HD riistvaraline video dekooder"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

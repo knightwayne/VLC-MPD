@@ -11422,10 +11422,6 @@ msgstr "কেপশ্বনবোৰ ডিকোডাৰ বন্ধ কৰ
 msgid "CDG video decoder"
 msgstr "CDG ভিডিঅ’ ডিকোডাৰ"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "ক্ৰিষ্টেল HD হাৰ্ডৱেৰ ভিডিঅ’ ডিকোডাৰ"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "CVD উপশিৰোনাম ডিকোডাৰ"
@@ -29928,6 +29924,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "মিডিয়া পৰিচালকৰ তালিকা"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "ক্ৰিষ্টেল HD হাৰ্ডৱেৰ ভিডিঅ’ ডিকোডাৰ"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

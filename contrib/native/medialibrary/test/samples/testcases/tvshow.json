@@ -1,0 +1,27 @@
+{
+    "input": [
+        "video/tvshow/"
+    ],
+    "expected": {
+        "nbVideos": 2,
+        "shows": [
+            {
+                "name": "Mr Robot",
+                "nbEpisodes": 2,
+                "episodes": [
+                    {
+                        "title": "401 Unauthorized",
+                        "seasonId": 4,
+                        "episodeId": 1
+                    },
+                    {
+                        "mediaTitle": "Mr Robot S04E02",
+                        "title": "",
+                        "seasonId": 4,
+                        "episodeId": 2
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -11489,10 +11489,6 @@ msgstr "Дэкодар субтытраў"
 msgid "CDG video decoder"
 msgstr "Кодар відэа CDG"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "Апаратны кодар відэа Crystal HD"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "Дэкодар субтытраў CVD"
@@ -30204,6 +30200,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Спіс медыякіраўніка"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Апаратны кодар відэа Crystal HD"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

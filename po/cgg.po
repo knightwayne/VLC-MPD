@@ -11220,11 +11220,6 @@ msgstr ""
 msgid "CDG video decoder"
 msgstr "Akooma ka filimu"
 
-#: modules/codec/crystalhd.c:90
-#, fuzzy
-msgid "Crystal HD hardware video decoder"
-msgstr "Akooma ka filimu"
-
 #: modules/codec/cvdsub.c:50
 #, fuzzy
 msgid "CVD subtitle decoder"
@@ -29778,6 +29773,10 @@ msgstr ""
 #, fuzzy
 msgid "Media Manager List"
 msgstr "Ekipimo ky'ekirazaana"
+
+#, fuzzy
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Akooma ka filimu"
 
 #, fuzzy
 #~ msgid "Capture region heigh"

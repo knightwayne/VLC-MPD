@@ -11306,11 +11306,6 @@ msgstr ""
 msgid "CDG video decoder"
 msgstr "Ebikka ya vidiyo"
 
-#: modules/codec/crystalhd.c:90
-#, fuzzy
-msgid "Crystal HD hardware video decoder"
-msgstr "Ebikka ya vidiyo"
-
 #: modules/codec/cvdsub.c:50
 #, fuzzy
 msgid "CVD subtitle decoder"
@@ -29970,6 +29965,10 @@ msgstr ""
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Olukalala lwe Mpulizinganya Enfugga"
+
+#, fuzzy
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Ebikka ya vidiyo"
 
 #, fuzzy
 #~ msgid "Capture region heigh"

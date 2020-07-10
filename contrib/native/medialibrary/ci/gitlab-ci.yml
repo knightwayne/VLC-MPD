@@ -1,0 +1,136 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
+
+linux:
+    image: registry.videolan.org/medialibrary:20190531150343
+    except:
+      - schedules
+    tags:
+      - debian
+      - amd64
+    script:
+      - ./bootstrap
+      - ./configure --enable-tests
+      - make -j4
+      - make -j4 check
+      - ./unittest
+      - ./samples --gtest_filter=-\*removable
+
+win32:
+    image: registry.videolan.org/medialibrary-win32:20191203153222
+    except:
+      - schedules
+    tags:
+      - win32
+    script:
+      - wineserver -p && wine wineboot
+      - export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/prefix/lib/pkgconfig"
+      - ./bootstrap
+      - ./configure --enable-tests --host=i686-w64-mingw32 --disable-shared
+      - make -j4
+      - make -j4 check
+      - cp /prefix/dll/libvlc.dll .
+      - cp /prefix/dll/libvlccore.dll .
+      - ln -s /prefix/lib/vlc/plugins/ .
+      - wine unittest.exe
+      - wine samples.exe --gtest_filter=-\*removable
+
+win64:
+    image: registry.videolan.org/medialibrary-win64:20191203155144
+    except:
+      - schedules
+    tags:
+      - win64
+    script:
+      - wineserver -p && wine wineboot
+      - export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/prefix/lib/pkgconfig"
+      - ./bootstrap
+      - ./configure --enable-tests --host=x86_64-w64-mingw32 --disable-shared
+      - make -j4
+      - make -j4 check
+      - cp /prefix/dll/libvlc.dll .
+      - cp /prefix/dll/libvlccore.dll .
+      - ln -s /prefix/lib/vlc/plugins/ .
+      - wine unittest.exe
+      - wine samples.exe --gtest_filter=\*removable
+
+coverage:
+    image: registry.videolan.org/medialibrary:20190531150343
+    tags:
+      - debian
+      - amd64
+    only:
+      refs:
+        - schedules
+    script:
+        - ./bootstrap
+        - CXXFLAGS='--coverage -g -O0' LDFLAGS='--coverage -g -O0' ./configure --enable-tests
+        - make -j4 check
+        - ./unittest && ./samples
+        - lcov --capture --directory . -o coverage.info
+        - lcov --remove coverage.info "/usr/*" -o coverage.info
+        - lcov --remove coverage.info "/prefix/*" -o coverage.info
+        - lcov --remove coverage.info "$CI_PROJECT_DIR/test/*" -o coverage.info
+        - lcov --remove coverage.info "$CI_PROJECT_DIR/googletest/*" -o coverage.info
+        - lcov --remove coverage.info "$CI_PROJECT_DIR/src/logging/*" -o coverage.info
+        - lcov --remove coverage.info "$CI_PROJECT_DIR/libvlcpp/*" -o coverage.info
+        - lcov --remove coverage.info "$CI_PROJECT_DIR/src/database/SqliteErrors.h" -o coverage.info
+        - lcov --remove coverage.info "$CI_PROJECT_DIR/include/medialibrary/filesystem/Errors.h" -o coverage.info
+        - lcov --remove coverage.info "$CI_PROJECT_DIR/include/medialibrary/IMediaLibrary.h" -o coverage.info
+        - lcov --summary coverage.info
+        - genhtml coverage.info --output-directory html/
+    artifacts:
+        name: "coverage-medialibrary-$CI_COMMIT_SHORT_SHA"
+        paths:
+            - html/
+
+asan-ubsan:
+    image: registry.videolan.org/vlc-debian-unstable:20191204094457
+    only:
+      - schedules
+    tags:
+      - debian
+      - amd64
+    variables:
+      LSAN_OPTIONS: 'detect_leaks=0'
+    script:
+      - git clone https://git.videolan.org/git/vlc.git --depth=1
+      - cd vlc && ./bootstrap
+      - ./configure LDFLAGS="-lasan -lubsan" --prefix=$(pwd)/prefix --disable-qt --with-sanitizer=address,undefined --disable-medialibrary --disable-nls --enable-debug
+      - make install -j8
+      - export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(pwd)/prefix/lib/pkgconfig"
+      - cd ..
+      - ./bootstrap
+      - ./configure --enable-tests CXXFLAGS="-g -O1 -fsanitize=address,undefined"
+      - make -j4
+      - make -j4 check
+      - ./unittest
+      - ./samples
+      - ./test_fast_teardown $CI_PROJECT_DIR/test/samples/samples
+      - ./test_fast_discover $CI_PROJECT_DIR/test/samples/samples
+
+tsan:
+    image: registry.videolan.org/vlc-debian-unstable:20191204094457
+    only:
+      - schedules
+    tags:
+      - debian
+      - amd64
+    variables:
+        TSAN_OPTIONS: 'suppressions=$CI_PROJECT_DIR/ci/tsan_suppress_file'
+    script:
+      - git clone https://git.videolan.org/git/vlc.git --depth=1
+      - cd vlc && ./bootstrap
+      - ./configure LDFLAGS="-ltsan" --prefix=$(pwd)/prefix --disable-qt --with-sanitizer=thread --disable-medialibrary --disable-nls --enable-debug
+      - make install -j8
+      - export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(pwd)/prefix/lib/pkgconfig"
+      - cd ..
+      - ./bootstrap
+      - ./configure --enable-tests CXXFLAGS="-g -O1 -fsanitize=thread"
+      - make -j8
+      - make -j8 check
+      - ./unittest
+      - ./samples
+      - ./test_fast_teardown $CI_PROJECT_DIR/test/samples/samples
+      - ./test_fast_discover $CI_PROJECT_DIR/test/samples/samples
+

@@ -1,0 +1,26 @@
+{
+    "input": [
+        "video/unknown_tv_show/"
+    ],
+    "expected": {
+        "nbVideos": 2,
+        "shows": [
+            {
+                "name": "",
+                "nbEpisodes": 2,
+                "episodes": [
+                    {
+                        "title": "A random tv show",
+                        "seasonId": 3,
+                        "episodeId": 4
+                    },
+                    {
+                        "title": "Another episode",
+                        "seasonId": 4,
+                        "episodeId": 13
+                    }
+                ]
+            }
+        ]
+    }
+}

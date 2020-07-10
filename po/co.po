@@ -10932,10 +10932,6 @@ msgstr "Discudificatore di Sottutituli Ditagliati"
 msgid "CDG video decoder"
 msgstr "Discudificatore video CDG"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "Discudificatore video materiale Crystal HD"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "Discudificatore di sottutitulu CVD"
@@ -28569,6 +28565,9 @@ msgstr "AAAA ; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Lista di u Ghjestiunariu di Media"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Discudificatore video materiale Crystal HD"
 
 #~ msgid "Sound fonts"
 #~ msgstr "Grafie di Sonu"
