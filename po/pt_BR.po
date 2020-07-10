@@ -11557,10 +11557,6 @@ msgstr "Decodificador de legenda oculta"
 msgid "CDG video decoder"
 msgstr "Decodificador de vídeo CDG"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "Decodificador de vídeo Crystal HD por hardware"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "Decodificador de legenda de CVD"
@@ -30355,6 +30351,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Lista do Gerenciador de Mídias"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Decodificador de vídeo Crystal HD por hardware"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

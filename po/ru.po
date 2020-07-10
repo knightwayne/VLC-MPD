@@ -11487,10 +11487,6 @@ msgstr "Декодер субтитров"
 msgid "CDG video decoder"
 msgstr "Видеодекодер CDG"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "Аппаратный видеодекодер Crystal HD"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "Декодер субтитров CVD"
@@ -30148,6 +30144,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Список настроек медиаменеджера"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Аппаратный видеодекодер Crystal HD"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

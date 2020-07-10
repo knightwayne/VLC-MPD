@@ -10954,10 +10954,6 @@ msgstr "Undertekstdekodar"
 msgid "CDG video decoder"
 msgstr "CDG-videodekodar"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "CrystalHD-maskinvarevideodekodar"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "CVD-undertekstdekodar"
@@ -28616,6 +28612,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr ""
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "CrystalHD-maskinvarevideodekodar"
 
 #~ msgid "Sound fonts"
 #~ msgstr "Lydtypar"

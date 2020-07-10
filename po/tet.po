@@ -11011,11 +11011,6 @@ msgstr ""
 msgid "CDG video decoder"
 msgstr "_Video"
 
-#: modules/codec/crystalhd.c:90
-#, fuzzy
-msgid "Crystal HD hardware video decoder"
-msgstr "_Video"
-
 #: modules/codec/cvdsub.c:50
 #, fuzzy
 msgid "CVD subtitle decoder"
@@ -29668,6 +29663,10 @@ msgstr ""
 #, fuzzy
 msgid "Media Manager List"
 msgstr "_Navigação"
+
+#, fuzzy
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "_Video"
 
 #, fuzzy
 #~ msgid "Capture region heigh"

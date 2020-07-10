@@ -11761,10 +11761,6 @@ msgstr "Αποκωδικοποιητής κλεισμένων λεζαντών"
 msgid "CDG video decoder"
 msgstr "Αποκωδικοποιητής βίντεο CDG"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "Αποκωδικοποιητής βίντεο υλικού Crystal HD"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "Αποκωδικοποιητής υπότιτλων CVD"
@@ -30843,6 +30839,9 @@ msgstr "AAAA;"
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Λίστα διαχειριστή πολυμέσων"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Αποκωδικοποιητής βίντεο υλικού Crystal HD"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

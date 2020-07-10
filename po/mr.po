@@ -11365,10 +11365,6 @@ msgstr "बंद मथळे विसंकेतक"
 msgid "CDG video decoder"
 msgstr "सीडीजी ध्वनीचित्रफित विसंकेतक"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "सुस्पष्ट एचडी हार्डवेअर ध्वनीचित्रफित विसंकेतक"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "सीव्हीडी अनुवादपट्टी विसंकेतक"
@@ -29914,6 +29910,9 @@ msgstr "एएएए; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "माध्यम व्यवस्थापक यादी"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "सुस्पष्ट एचडी हार्डवेअर ध्वनीचित्रफित विसंकेतक"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

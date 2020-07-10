@@ -11339,10 +11339,6 @@ msgstr "बन्न कैप्शन विकोडक"
 msgid "CDG video decoder"
 msgstr "CDG वीडियो विकोडक"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "क्रिस्टल HD हार्डवेयर वीडियो डिकोडर"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "CVD उपशीर्षक विकोटक"
@@ -29823,6 +29819,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "मीडिया प्रबंधन सूची"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "क्रिस्टल HD हार्डवेयर वीडियो डिकोडर"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

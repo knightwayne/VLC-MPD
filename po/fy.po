@@ -11559,10 +11559,6 @@ msgstr "Closed Captions-decoder"
 msgid "CDG video decoder"
 msgstr "CDG videodecoder"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "Crystal HD hardware videodecoder"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "CVD-ondertiteldecoder"
@@ -30335,6 +30331,9 @@ msgstr "AAAA; "
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "Mediabeherlist"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "Crystal HD hardware videodecoder"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."

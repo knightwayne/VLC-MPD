@@ -11210,10 +11210,6 @@ msgstr "បាន​បិទ​ឌិកូឌ័រ​ចំណងជើង"
 msgid "CDG video decoder"
 msgstr "ឌិកូឌ័រ​វីដេអូ CDG"
 
-#: modules/codec/crystalhd.c:90
-msgid "Crystal HD hardware video decoder"
-msgstr "ឌិកូឌ័រ"
-
 #: modules/codec/cvdsub.c:50
 msgid "CVD subtitle decoder"
 msgstr "ឌិកូឌ័រ​ចំណងជើង​រង CVD"
@@ -29526,6 +29522,9 @@ msgstr "AAAA;"
 #: modules/gui/qt/ui/vlm.h:302
 msgid "Media Manager List"
 msgstr "បញ្ជី​គ្រប់គ្រង​មេឌៀ"
+
+#~ msgid "Crystal HD hardware video decoder"
+#~ msgstr "ឌិកូឌ័រ"
 
 #, fuzzy
 #~ msgid "The Sound Font file (SF2/DLS) to use for synthesis."
