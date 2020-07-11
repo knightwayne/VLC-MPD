@@ -26,7 +26,7 @@
 #include <vlc_playlist.h>
 #include <vlc_actions.h>
 
-/*Port and Address to look up at Request at - http://192.168.0.101:6600*/
+/*Port and Address to look up at Request at - http://192.168.0.101:6600 .. 4_yhoyhJegDyAGxR3fSu*/
 #define PORT 6600
 
 // Function Declarations & System Variables Declaration Here.
