@@ -157,9 +157,3 @@ vlc_module_begin()
                     set_category(CAT_INTERFACE)
                         add_string("variable", "world", "Target", "Whom to say hello to.", false) //?
     vlc_module_end()
-
-<<<<<<< HEAD
-    
-=======
-    
->>>>>>> cf85eee2052074251b329b0e268cd9971e19f1ef

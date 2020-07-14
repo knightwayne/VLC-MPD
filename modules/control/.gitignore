@@ -5,7 +5,7 @@ mpdT.c
 README.md
 
 #server-client model files
-server.c
-client.c
+server-vlc.c
+client-vlc.c
 cl
 se
