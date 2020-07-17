@@ -16,6 +16,7 @@
 #include <vlc_vector.h>
 
 /* Added during Playback Development */
+#include <vlc_media_library.h>
 #include <vlc_common.h>
 #include <vlc_plugin.h>
 #include <vlc_interface.h>
@@ -29,21 +30,29 @@
 /* Port and Address to look up at Request at - http://192.168.0.101:6600 .. 4_yhoyhJegDyAGxR3fSu */
 #define PORT 6600
 
-// Function Declarations
+/*struct and array declarations*/
 typedef struct commandFunc
 {
     const char *command;
     char* (*commandName)();/*some-variable for passing*/
 }commandFunc;
 
+/*Function Declarations*/
 void* clientHandling(void *arg);
-//char* parseRequest(char* buffer);
 static int string_compare_function(const void *key, const void *arrayElement);
 commandFunc* searchCommand(const char* key);
 char* mediaList(void);
 char* mediaList2(void);
+char* quit(void);
 
-// System Variables Declaration
+/*command List Array*/
+const commandFunc command_list_array[]={
+    {"buffer", mediaList},
+    {"noidle", mediaList2},
+    {"quit", quit}
+};
+
+/*System Variables Declaration*/
 struct intf_sys_t
 {
     int server_fd;
@@ -51,39 +60,25 @@ struct intf_sys_t
 };
 
 /*command functions - main media playback here*/
-char* mediaList()
+char* mediaList(void)
 {
-    printf("mediaList");
+    printf("mediaList\n");
+    //vlc_medialibrary_t* vlcmt;
     return "mediaList";
 }
-
-char* mediaList2()
+char* mediaList2(void)
 {
-    printf("mediaList2");
+    printf("mediaList2\n");
+
+
+
     return "mediaList2";
 }
-
-/*client request parsing function*/
-// char* parseRequest(char* input)
-// {
-//     input[strlen(input)-1] = '\0';
-//     printf("Input Size: %ld \tBuffer %s \n", strlen(input), input);
-//     const char* val;
-// 
-//     if(strcmp(input,"noidle")==0)
-//     {
-//         val="noidle";
-//         printf("01\n");
-//     }
-//     else//if no command is found.
-//     {
-//         val="quit";
-//         printf("02\n");
-//         //FD_CLR(client_fd, currentSockets); //when quit is called
-//     }
-// 
-//     return val;
-// }
+char* quit(void)
+{
+    printf("quit\n");
+    return "quit";
+}
 
 /*string_compare_function*/
 static int string_compare_function(const void *key, const void *arrayElement)
@@ -92,16 +87,10 @@ static int string_compare_function(const void *key, const void *arrayElement)
     return strcmp(key, commandFunc->command);/*each list item's string binary search*/
 }
 
-/*command List Array*/
-const commandFunc command_list_array[]={
-    {"list", mediaList},
-    {"listmedia", mediaList2}
-};
-
 /*command search function*/
 commandFunc* searchCommand(const char* key)
 {
-    return bsearch(key/*key*/, command_list_array, ARRAY_SIZE(command_list_array),sizeof(*command_list_array), string_compare_function);
+    return bsearch(key, command_list_array, ARRAY_SIZE(command_list_array),sizeof(*command_list_array), string_compare_function);
 }
 
 /*client Handling thread*/
@@ -131,8 +120,8 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
     while(true)
     {
         readySockets=currentSockets;
-        // 4. Accepting Multiple CLients using Select() method for polling
-        if(select(FD_SETSIZE, &readySockets,NULL,NULL,NULL)<0)  //server has read operation pending
+        // 4. Accepting(Monitoring) Multiple CLients using Select() method for polling
+        if(select(FD_SETSIZE, &readySockets,NULL,NULL,NULL)<0)  //readySockets has read operation pending
         {
             perror("select");
             exit(EXIT_FAILURE);
@@ -142,7 +131,8 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
         {
             if(FD_ISSET(i,&readySockets))
             {
-                if(i==server_fd) //server accept condition
+                // server has new client connection
+                if(i==server_fd) 
                 {
                     bzero((char *)&clientAddr, sizeof(clientAddr));
                     if ((client_fd = accept(server_fd, (struct sockaddr *)&clientAddr, (socklen_t *)&clientAddrLen)) < 0)
@@ -153,7 +143,8 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
                     FD_SET(client_fd,&currentSockets);  //move client_fd to current
                     msg_Info(intfa, "server read: %d\n", client_fd);
                 }
-                else //client pending read connection
+                // client has pending read connection (new message)
+                else 
                 {
                     client_fd = i;
                     msg_Info(intfa, "client_fd read: %d\n", client_fd);
@@ -166,14 +157,26 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
                         perror("read");
                         exit(EXIT_FAILURE);
                     }
-                    printf("input:%s",input);
+                    input[strlen(input)-1]='\0';
+                    //if length is 0-> send OK, study MPD protocol for this;
+                    printf("input:%s\t inputSize:%ld\n",input,strlen(input));
 
                     commandFunc* command=searchCommand(input);
-                    
-                    //char* output = parseRequest(input); 
+                    if(command==NULL)
+                    {
+                        printf("command not found\n");
+                        send(client_fd, "NOK", strlen("NOK"), 0);
+                
+                        // call media listing and playback functions
+                        //<--here-->
+                        FD_CLR(client_fd, &currentSockets); //remove client_fd to current
+                        continue;
+                    }
+
                     char* output = command->commandName(); 
                     send(client_fd, output, strlen(output), 0);
 
+                    //should close connection after serving request or not???
                     FD_CLR(client_fd, &currentSockets); //remove client_fd to current
                 }
             }//if
@@ -252,6 +255,8 @@ static void Close(vlc_object_t *obj)
     intf_thread_t *intf = (intf_thread_t *)obj;
     
     // 1. Freeing up resources
+    // - those dynamically allocated, not static allocation (like int i = 10;)
+    // check for appropriate dynamic allocation, I have used only static allocation
     intf_sys_t *sys = intf->p_sys;
     vlc_join(sys->mpd_thread, NULL);
     free(sys);
