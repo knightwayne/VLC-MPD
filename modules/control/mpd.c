@@ -183,10 +183,17 @@ void* clientHandling(void *threadArgument) //Parsing Polling Listening to Reques
                     input_item_t *media=input_item_New("file:///home/nightwayne/Music/Natural.mp3","Natural"); //URI file path error
 
                     //playing
-                    vlc_player_Lock(player);
-                    int i=vlc_player_SetCurrentMedia(player, media);
-                    int j=vlc_player_Start(player);
-                    vlc_player_Unlock(player);
+                    int t;
+                    // vlc_player_Lock(player);
+                    // t=vlc_player_SetCurrentMedia(player, media);
+                    // t=vlc_player_Start(player);
+                    // vlc_player_Unlock(player);
+
+                    vlc_playlist_Lock(playlist);
+                    t=vlc_playlist_InsertOne(playlist,0,media);
+                    t=vlc_playlist_Start(playlist);
+                    //vlc_playlist_Stop(playlist);
+                    vlc_playlist_Unlock(playlist);
 
                     //orignal code of this portion
                     char* outputa="OK MPD Version 0.21.25";
