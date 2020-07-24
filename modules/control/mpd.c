@@ -17,67 +17,94 @@
 
 /* Added during Playback Development */
 #include <vlc_media_library.h>
+#include <vlc_player.h>
+#include <vlc_playlist.h>
 #include <vlc_common.h>
 #include <vlc_plugin.h>
 #include <vlc_interface.h>
 #include <vlc_input_item.h>
 #include <vlc_aout.h>
 #include <vlc_vout.h>
-#include <vlc_player.h>
-#include <vlc_playlist.h>
 #include <vlc_actions.h>
 
 /* Port and Address to look up at Request at - http://192.168.0.101:6600 .. 4_yhoyhJegDyAGxR3fSu */
+//sudo gedit /etc/mpd.conf 
 #define PORT 6600
 
-/*struct and array declarations*/
+/*struct and array declarations*/ /*System Variables Declaration*/
+struct intf_sys_t
+{
+    int server_fd;
+    vlc_thread_t mpd_thread;
+    vlc_medialibrary_t *vlc_medialibrary;
+    vlc_playlist_t *vlc_playlist;
+    vlc_player_t *vlc_player;
+};
+
 typedef struct commandFunc
 {
     const char *command;
-    char* (*commandName)();/*some-variable for passing*/
+    char* (*commandName)(intf_thread_t *intfa, char* arguments);/*some-variable for passing*/
 }commandFunc;
 
 /*Function Declarations*/
 void* clientHandling(void *arg);
 static int string_compare_function(const void *key, const void *arrayElement);
 commandFunc* searchCommand(const char* key);
-char* mediaList(void);
-char* mediaList2(void);
-char* quit(void);
+char* listall(intf_thread_t *intfa, char* arguments);
+char* listtag(intf_thread_t *intfa, char* arguments);
+char* list(intf_thread_t *intfa, char* arguments);
+char* quit(intf_thread_t *intfa, char* arguments);
 
 /*command List Array*/
 const commandFunc command_list_array[]={
-    {"buffer", mediaList},
-    {"noidle", mediaList2},
+    {"listall", listall},
+    {"list", listtag},
+    {"ls", list},
     {"quit", quit}
 };
 
-/*System Variables Declaration*/
-struct intf_sys_t
-{
-    int server_fd;
-    vlc_thread_t mpd_thread;
-};
-
 /*command functions - main media playback here*/
-char* mediaList(void)
+char* listall(intf_thread_t *intfa, char* arguments)
 {
-    printf("mediaList\n");
-    //vlc_medialibrary_t* vlcmt;
-    return "mediaList";
+    printf("listAll\n");
+    char returnString[4096];
+    vlc_medialibrary_t* p_ml = intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t params = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* p_params = &params;
+
+    vlc_ml_media_list_t *p_vlc_ml_media_list_t=vlc_ml_list_audio_media (p_ml, p_params);
+    char *title, *c;
+    for(int i=0;i<p_vlc_ml_media_list_t->i_nb_items;i++)
+    {
+        vlc_ml_media_t *p_vlc_ml_media_t=&p_vlc_ml_media_list_t->p_items[i];
+        title=p_vlc_ml_media_t->psz_title;
+        c=strcat(title,"\n");
+        //msg_Info(intfa,"%s",title);
+        c=strcat(returnString,title);
+        //msg_Info(intfa,"%s",c);
+    }
+    c=strcat(returnString,"\n");
+    //msg_Info(intfa,"%s",c);
+    return returnString;
 }
-char* mediaList2(void)
+char* listtag(intf_thread_t *intfa, char* arguments)
 {
-    printf("mediaList2\n");
-
-
-
-    return "mediaList2";
+    printf("listAll\n");
+    char* returnString;
+    return returnString;
 }
-char* quit(void)
+char* list(intf_thread_t *intfa, char* arguments)
+{
+    printf("listAll\n");
+    char* returnString;
+    return returnString;
+}
+char* quit(intf_thread_t *intfa, char* arguments)
 {
     printf("quit\n");
-    return "quit";
+    char* returnString="quit";
+    return returnString;
 }
 
 /*string_compare_function*/
@@ -94,10 +121,10 @@ commandFunc* searchCommand(const char* key)
 }
 
 /*client Handling thread*/
-void* clientHandling(void *arg) //Parsing Polling Listening to Requests
+void* clientHandling(void *threadArgument) //Parsing Polling Listening to Requests
 {
     // 0. Function Start
-    intf_thread_t *intfa = (intf_thread_t *)arg;
+    intf_thread_t *intfa = (intf_thread_t *)threadArgument;
     msg_Info(intfa, "Hello from thread side!");
 
     // 1. Initialising Client
@@ -131,9 +158,9 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
         {
             if(FD_ISSET(i,&readySockets))
             {
-                // server has new client connection
                 if(i==server_fd) 
                 {
+                    // server has new client connection
                     bzero((char *)&clientAddr, sizeof(clientAddr));
                     if ((client_fd = accept(server_fd, (struct sockaddr *)&clientAddr, (socklen_t *)&clientAddrLen)) < 0)
                     {
@@ -141,15 +168,39 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
                         exit(EXIT_FAILURE);
                     }
                     FD_SET(client_fd,&currentSockets);  //move client_fd to current
+
+                    // for mediaLibrary and Playback Testing-----------------------------------------------------------------
+                    //medialibrary
+                    char* arguments="a";
+                    commandFunc* command=&command_list_array[0];
+                    //output problem here
+                    char* output = command->commandName(intfa, arguments); 
+                    msg_Info(intfa,"%s",output);
+                    
+                    //player
+                    vlc_player_t *player=intfa->p_sys->vlc_player;
+                    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+                    input_item_t *media=input_item_New("file:///home/nightwayne/Music/Natural.mp3","Natural"); //URI file path error
+
+                    //playing
+                    vlc_player_Lock(player);
+                    int i=vlc_player_SetCurrentMedia(player, media);
+                    int j=vlc_player_Start(player);
+                    vlc_player_Unlock(player);
+
+                    //orignal code of this portion
+                    char* outputa="OK MPD Version 0.21.25";
+                    send(client_fd, outputa, strlen(outputa), 0);
                     msg_Info(intfa, "server read: %d\n", client_fd);
                 }
-                // client has pending read connection (new message)
                 else 
                 {
+                    // client has pending read connection (new message)
                     client_fd = i;
                     msg_Info(intfa, "client_fd read: %d\n", client_fd);
                     
                     int n;
+                    //char input[4096];
                     char input[4096];
                     bzero(input,4096);
                     if ((n = read(client_fd,input,4095)) < 0)
@@ -157,27 +208,57 @@ void* clientHandling(void *arg) //Parsing Polling Listening to Requests
                         perror("read");
                         exit(EXIT_FAILURE);
                     }
-                    input[strlen(input)-1]='\0';
-                    //if length is 0-> send OK, study MPD protocol for this;
-                    printf("input:%s\t inputSize:%ld\n",input,strlen(input));
+                    printf("input:%s\t inputSize:%ld\n",input,strlen(input)); 
 
+                    if(strlen(input)==0)
+                    {
+                        //printf("input size=0\n");
+                        msg_Info(intfa,"input size=0\n");
+                        send(client_fd, "OK\n", strlen("OK\n"), 0);
+                        //continue;
+                    }
+                    
+                    printf("input:%s\t inputSize:%ld\n",input,strlen(input)); 
+                    //put it in a separate function
+                    //separating commands and arguments in input with help of whitespace;
+                    char* arguments, hasSpace = strchr(input,' ');
+                    if(hasSpace == NULL)
+                    {
+                        //no arguments
+                        arguments="";
+                        input[strlen(input)-1]='\0';
+                    }
+                    else    //check if implemented correctly - have doubt though
+                    {
+                        //has arguments
+                        arguments=hasSpace;
+                        int aa=strlen(arguments);
+                        int bb=strlen(input);
+                        //remember first index is still ' ' (whitespace)
+                        //to replace \n with \0;
+                        arguments[strlen(arguments)-1]='\0';  //check if it has 2 /0 in the end - should not ideally.
+                        //input = command - argument;
+                        memcpy(input,input,bb-aa);
+                    }
+                    
+                    //passing input in SearchCommand;
+                    printf("input:%s\t inputSize:%ld\n",input,strlen(input)); 
+                    printf("arguments:%s\t argumentsSize:%ld\n",arguments,strlen(arguments));
                     commandFunc* command=searchCommand(input);
+
                     if(command==NULL)
                     {
                         printf("command not found\n");
-                        send(client_fd, "NOK", strlen("NOK"), 0);
-                
-                        // call media listing and playback functions
-                        //<--here-->
+                        send(client_fd, "ACK command not found\n", strlen("ACK command not found\n"), 0);
                         FD_CLR(client_fd, &currentSockets); //remove client_fd to current
                         continue;
                     }
 
-                    char* output = command->commandName(); 
+                    char* output = command->commandName(intfa, arguments); 
                     send(client_fd, output, strlen(output), 0);
 
                     //should close connection after serving request or not???
-                    FD_CLR(client_fd, &currentSockets); //remove client_fd to current
+                    //FD_CLR(client_fd, &currentSockets); //remove client_fd to current
                 }
             }//if
         }//for
@@ -225,19 +306,27 @@ static int Open(vlc_object_t *obj)
     }
 
     // 5. Thread Creation & Initialisation
-    intf_thread_t *intfa = (intf_thread_t *)obj;    //thread for passing objects;
+    intf_thread_t *threadArgument = (intf_thread_t *)obj;    //thread for passing objects;
     vlc_thread_t mpd_t;
+    vlc_medialibrary_t* p_ml=vlc_ml_instance_get(obj);
+    vlc_playlist_t* p_pl=vlc_playlist_New(obj);
+    vlc_player_t *p_p=vlc_player_New(obj,VLC_PLAYER_LOCK_NORMAL,NULL,NULL);
+
     intf_sys_t *sys = malloc(sizeof(*sys));
     if (unlikely(sys == NULL))
         return VLC_ENOMEM;
     
-    intfa->p_sys=sys;
-    sys->mpd_thread = mpd_t;
+    threadArgument->p_sys=sys;
+
     sys->server_fd=server_fd;
+    sys->mpd_thread = mpd_t;
+    sys->vlc_medialibrary=p_ml;
+    sys->vlc_playlist=p_pl;
+    sys->vlc_player=p_p;
 
     // 6. Client Handling
     int i=0;
-    if((i = vlc_clone(&sys->mpd_thread, clientHandling, intfa, 0))<0) //0 - VLC_THREAD_PRIORITY_LOW
+    if((i = vlc_clone(&sys->mpd_thread, clientHandling, threadArgument, 0))<0) //0 - VLC_THREAD_PRIORITY_LOW
     {
         perror("clone failed");
         exit(EXIT_FAILURE);
@@ -255,10 +344,11 @@ static void Close(vlc_object_t *obj)
     intf_thread_t *intf = (intf_thread_t *)obj;
     
     // 1. Freeing up resources
-    // - those dynamically allocated, not static allocation (like int i = 10;)
+    // -those dynamically allocated, not static allocation (like int i = 10;)
     // check for appropriate dynamic allocation, I have used only static allocation
     intf_sys_t *sys = intf->p_sys;
     vlc_join(sys->mpd_thread, NULL);
+    free(sys->vlc_medialibrary);
     free(sys);
 
     // 2. Module End
