@@ -99,6 +99,26 @@ static int Open(vlc_object_t *obj)
     
     //double free or corruption (out) Aborted (core dumped)
 
+    //player
+    vlc_playlist_t *playlist=vlc_intf_GetMainPlaylist(intf);
+    vlc_player_t *player=vlc_playlist_GetPlayer(playlist);
+    input_item_t *media=input_item_New("file:///home/nightwayne/Music/Natural.mp3","Natural"); //URI file path error
+    // playing
+    int t;
+    vlc_player_Lock(player);
+    t=vlc_player_SetCurrentMedia(player, media);
+    t=vlc_player_Start(player);
+    sleep(7);
+    vlc_player_Stop(player);
+    vlc_player_Unlock(player);
+    // // playing
+    // vlc_playlist_Lock(playlist);
+    // t=vlc_playlist_InsertOne(playlist,0,media);
+    // t=vlc_playlist_Start(playlist);
+    // vlc_playlist_Unlock(playlist);
+    input_item_Release (media);
+
+
     // 2. Module End
     return VLC_SUCCESS;
     //error case -> add go to statements if needed
