@@ -23,23 +23,23 @@ libmtp_plugin_la_LIBADD = $(MTP_LIBS)
 EXTRA_LTLIBRARIES += libmtp_plugin.la
 sd_LTLIBRARIES += $(LTLIBmtp)
 
-libupnp_plugin_la_SOURCES = services_discovery/upnp.cpp services_discovery/upnp.hpp \
-			    services_discovery/upnp-wrapper.hpp \
-			    services_discovery/upnp-wrapper.cpp \
-			    stream_out/renderer_common.hpp \
-			    stream_out/renderer_common.cpp \
-			    stream_out/dlna/profile_names.hpp \
-			    stream_out/dlna/dlna_common.hpp \
-			    stream_out/dlna/dlna.hpp \
-			    stream_out/dlna/dlna.cpp
-libupnp_plugin_la_CXXFLAGS = $(AM_CXXFLAGS) $(UPNP_CFLAGS)
-libupnp_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(sddir)'
-libupnp_plugin_la_LIBADD = $(UPNP_LIBS)
-EXTRA_LTLIBRARIES += libupnp_plugin.la
-sd_LTLIBRARIES += $(LTLIBupnp)
-if HAVE_OSX
-libupnp_plugin_la_LDFLAGS += -Wl,-framework,CoreFoundation,-framework,SystemConfiguration
-endif
+#libupnp_plugin_la_SOURCES = services_discovery/upnp.cpp services_discovery/upnp.hpp \
+#			    services_discovery/upnp-wrapper.hpp \
+#			    services_discovery/upnp-wrapper.cpp \
+#			    stream_out/renderer_common.hpp \
+#			    stream_out/renderer_common.cpp \
+#			    stream_out/dlna/profile_names.hpp \
+#			    stream_out/dlna/dlna_common.hpp \
+#			    stream_out/dlna/dlna.hpp \
+#			    stream_out/dlna/dlna.cpp
+#libupnp_plugin_la_CXXFLAGS = $(AM_CXXFLAGS) $(UPNP_CFLAGS)
+#libupnp_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(sddir)'
+#libupnp_plugin_la_LIBADD = $(UPNP_LIBS)
+#EXTRA_LTLIBRARIES += libupnp_plugin.la
+#sd_LTLIBRARIES += $(LTLIBupnp)
+#if HAVE_OSX
+#libupnp_plugin_la_LDFLAGS += -Wl,-framework,CoreFoundation,-framework,SystemConfiguration
+#endif
 
 libpulselist_plugin_la_SOURCES = services_discovery/pulse.c
 libpulselist_plugin_la_CFLAGS = $(AM_CFLAGS) $(PULSE_CFLAGS)
