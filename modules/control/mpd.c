@@ -15,6 +15,7 @@
 #include <vlc_vector.h>
 #include <vlc_memstream.h>
 /* Added during Playback Development */
+#include<vlc_mpd.h>
 #include <vlc_media_library.h>
 #include <vlc_player.h>
 #include <vlc_playlist.h>
@@ -41,137 +42,12 @@ typedef struct commandFunc
     const char *command;
     char *(*commandName)(intf_thread_t *intf, char *arguments); /*some-variable for passing*/ //i think it would be better to pass an array of arguments
 } commandFunc;
-
 /*Function Declarations*/
 static int string_compare_function(const void *key, const void *arrayElement);
 commandFunc *searchCommand(const char *key);
 void trim(char *s);
 void *clientHandling(void *arg);
-/*MPD Interaction Functions Declarations*/
-//client connection handling commands
-char *close(intf_thread_t *intfa, char *arguments);
-char *ping(intf_thread_t *intfa, char *arguments);
-char *password(intf_thread_t *intfa, char *arguments);
-char *tagtypes(intf_thread_t *intfa, char *arguments);
-//database commands
-//C--ommandResult handle_listfiles_db(Client &client, Response &r, const char *uri----);
-//C--ommandResult handle_lsinfo2(Client &client, const char *uri, Response &response---);
-char *find(intf_thread_t *intfa, char *arguments);
-char *findadd(intf_thread_t *intfa, char *arguments);
-char *search(intf_thread_t *intfa, char *arguments);
-char *searchadd(intf_thread_t *intfa, char *arguments);
-char *searchaddpl(intf_thread_t *intfa, char *arguments);
-char *count(intf_thread_t *intfa, char *arguments);
-char *listall(intf_thread_t *intfa, char *arguments);
-char *list(intf_thread_t *intfa, char *arguments);
-char *listallinfo(intf_thread_t *intfa, char *arguments);
-//file commands - reading music file ??
-//C--ommandResult handle_listfiles_local(Response &response, Path path_fs---);
-char *read_comments(intf_thread_t *intfa, char *arguments);
-char *album_art(intf_thread_t *intfa, char *arguments);
-char *read_picture(intf_thread_t *intfa, char *arguments);
-//fingerprint commands
-char *getfingerprint(intf_thread_t *intfa, char *arguments);
-//Message c2c communication
-char *subscribe(intf_thread_t *intfa, char *arguments);
-char *unsubscribe(intf_thread_t *intfa, char *arguments);
-char *channels(intf_thread_t *intfa, char *arguments);
-char *read_messages(intf_thread_t *intfa, char *arguments);
-char *send_message(intf_thread_t *intfa, char *arguments);
-//neighbour commands
-char *listneighbors(intf_thread_t *intfa, char *arguments);
-//other commands
-char *urlhandlers(intf_thread_t *intfa, char *arguments);
-char *decoders(intf_thread_t *intfa, char *arguments);
-char *kill(intf_thread_t *intfa, char *arguments);
-char *listfiles(intf_thread_t *intfa, char *arguments);
-char *lsinfo(intf_thread_t *intfa, char *arguments);
-char *update(intf_thread_t *intfa, char *arguments);
-char *rescan(intf_thread_t *intfa, char *arguments);
-char *setvol(intf_thread_t *intfa, char *arguments);
-char *volume(intf_thread_t *intfa, char *arguments);
-char *stats(intf_thread_t *intfa, char *arguments);
-char *config(intf_thread_t *intfa, char *arguments);
-char *idle(intf_thread_t *intfa, char *arguments);
-//output commands
-char *enableoutput(intf_thread_t *intfa, char *arguments);
-char *disableoutput(intf_thread_t *intfa, char *arguments);
-char *toggleoutput(intf_thread_t *intfa, char *arguments);
-char *outputset(intf_thread_t *intfa, char *arguments);
-char *devices(intf_thread_t *intfa, char *arguments);
-//partition commands
-char *partition(intf_thread_t *intfa, char *arguments);
-char *listpartitions(intf_thread_t *intfa, char *arguments);
-char *newpartition(intf_thread_t *intfa, char *arguments);
-char *delpartition(intf_thread_t *intfa, char *arguments);
-char *moveoutput(intf_thread_t *intfa, char *arguments);
-//player commands
-char *play(intf_thread_t *intfa, char *arguments);
-char *playid(intf_thread_t *intfa, char *arguments);
-char *stop(intf_thread_t *intfa, char *arguments);
-char *currentsong(intf_thread_t *intfa, char *arguments);
-char *pause(intf_thread_t *intfa, char *arguments);
-char *status(intf_thread_t *intfa, char *arguments);
-char *next(intf_thread_t *intfa, char *arguments);
-char *previous(intf_thread_t *intfa, char *arguments);
-char *repeat(intf_thread_t *intfa, char *arguments);
-char *single(intf_thread_t *intfa, char *arguments);
-char *consume(intf_thread_t *intfa, char *arguments);
-char *random(intf_thread_t *intfa, char *arguments);
-char *clearerror(intf_thread_t *intfa, char *arguments);
-char *seek(intf_thread_t *intfa, char *arguments);
-char *seekid(intf_thread_t *intfa, char *arguments);
-char *seekcur(intf_thread_t *intfa, char *arguments);
-char *crossfade(intf_thread_t *intfa, char *arguments);
-char *mixrampdb(intf_thread_t *intfa, char *arguments);
-char *mixrampdelay(intf_thread_t *intfa, char *arguments);
-char *replay_gain_mode(intf_thread_t *intfa, char *arguments);
-char *replay_gain_status(intf_thread_t *intfa, char *arguments);
-//playlist commands
-char *save(intf_thread_t *intfa, char *arguments);
-char *load(intf_thread_t *intfa, char *arguments);
-char *listplaylist(intf_thread_t *intfa, char *arguments);
-char *listplaylistinfo(intf_thread_t *intfa, char *arguments);
-char *rm(intf_thread_t *intfa, char *arguments);
-char *rename(intf_thread_t *intfa, char *arguments);
-char *playlistdelete(intf_thread_t *intfa, char *arguments);
-char *playlistmove(intf_thread_t *intfa, char *arguments);
-char *playlistclear(intf_thread_t *intfa, char *arguments);
-char *playlistadd(intf_thread_t *intfa, char *arguments);
-char *listplaylists(intf_thread_t *intfa, char *arguments);
-//queue commands
-char *add(intf_thread_t *intfa, char *arguments);
-char *addid(intf_thread_t *intfa, char *arguments);
-char *rangeid(intf_thread_t *intfa, char *arguments);
-char *delete (intf_thread_t *intfa, char *arguments);
-char *deleteid(intf_thread_t *intfa, char *arguments);
-char *playlist(intf_thread_t *intfa, char *arguments);
-char *shuffle(intf_thread_t *intfa, char *arguments);
-char *clear(intf_thread_t *intfa, char *arguments);
-char *plchanges(intf_thread_t *intfa, char *arguments);
-char *plchangesposid(intf_thread_t *intfa, char *arguments);
-char *playlistinfo(intf_thread_t *intfa, char *arguments);
-char *playlistid(intf_thread_t *intfa, char *arguments);
-char *playlistfind(intf_thread_t *intfa, char *arguments);
-char *playlistsearch(intf_thread_t *intfa, char *arguments);
-char *prio(intf_thread_t *intfa, char *arguments);
-char *prioid(intf_thread_t *intfa, char *arguments);
-char *move(intf_thread_t *intfa, char *arguments);
-char *moveid(intf_thread_t *intfa, char *arguments);
-char *swap(intf_thread_t *intfa, char *arguments);
-char *swapid(intf_thread_t *intfa, char *arguments);
-//sticker commands
-char *sticker(intf_thread_t *intfa, char *arguments);
-//storage commands
-//C--ommandResult handle_listfiles_storage(Response &r, Storage &storage, const char *uri--);
-//C--ommandResult handle_listfiles_storage(Client &client, Response &r, const char *uri--);
-char *listmounts(intf_thread_t *intfa, char *arguments);
-char *mount(intf_thread_t *intfa, char *arguments);
-char *unmount(intf_thread_t *intfa, char *arguments);
-//tag commands
-char *addtagid(intf_thread_t *intfa, char *arguments);
-char *cleartagid(intf_thread_t *intfa, char *arguments);
-
+#pragma region
 //command array
 const commandFunc command_list_array[] = {
     //{"listall", listall}
@@ -183,15 +59,15 @@ const commandFunc command_list_array[] = {
     {"clear", clear},
     {"clearerror", clearerror},
     {"cleartagid", cleartagid},
-    {"close", close},
-    {"commands", commands},
+    {"close", closeF},
+    //{"commands", commands},
     {"config", config},
     {"consume", consume},
     {"count", count},
     {"crossfade", crossfade},
     {"currentsong", currentsong},
     {"decoders", decoders},
-    {"delete", delete},
+    {"delete", deleteF},
     {"deleteid", deleteid},
     {"delpartition", delpartition},
     {"disableoutput", disableoutput},
@@ -221,12 +97,12 @@ const commandFunc command_list_array[] = {
     {"moveoutput", moveoutput},
     {"newpartition", newpartition},
     {"next", next},
-    {"notcommands", not_commands},
+    //{"notcommands", not_commands},
     {"outputs", devices},
     {"outputset", outputset},
     {"partition", partition},
     {"password", password},
-    {"pause", pause},
+    {"pause", pauseF},
     {"ping", ping},
     {"play", play},
     {"playid", playid},
@@ -244,12 +120,12 @@ const commandFunc command_list_array[] = {
     {"previous", previous},
     {"prio", prio},
     {"prioid", prioid},
-    {"random", random},
+    {"random", randomF},
     {"rangeid", rangeid},
     {"readcomments", read_comments},
     {"readmessages", read_messages},
     {"readpicture", read_picture},
-    {"rename", rename},
+    {"rename", renameF},
     {"repeat", repeat},
     {"replay_gain_mode", replay_gain_mode},
     {"replay_gain_status", replay_gain_status},
@@ -277,117 +153,11 @@ const commandFunc command_list_array[] = {
     {"toggleoutput", toggleoutput},
     {"unmount", unmount},
     {"unsubscribe", unsubscribe},
-    {"update", handle_update},
+    //{"update", handle_update},
     {"urlhandlers", urlhandlers},
     {"volume", volume}};
 
-//functions
-//client connection handling commands
-char *close(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *ping(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *password(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *tagtypes(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-//database commands
-char *find(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *findadd(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *search(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *searchadd(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *searchaddpl(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *count(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listall(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *list(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listallinfo(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
+/*MPD Interaction Commands*/
 //file commands - reading music file ??
 char *read_comments(intf_thread_t *intfa, char *arguments)
 {
@@ -465,6 +235,608 @@ char *send_message(intf_thread_t *intfa, char *arguments)
 }
 //neighbour commands
 char *listneighbors(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+//partition commands
+char *partition(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *listpartitions(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *newpartition(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *delpartition(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *moveoutput(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+//sticker commands
+char *sticker(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+//storage commands
+char *listmounts(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *mount(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *unmount(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+//client connection handling commands
+char *closeF(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *ping(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *password(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *tagtypes(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+#pragma endregion
+
+//database commands
+char *find(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *findadd(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *search(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *searchadd(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *searchaddpl(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *count(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *listall(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *list(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *listallinfo(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+//player commands
+char *play(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playid(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *stop(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *currentsong(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *pauseF(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *status(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *next(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *previous(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *repeat(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *single(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *consume(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *randomF(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *clearerror(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *seek(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *seekid(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *seekcur(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *crossfade(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *mixrampdb(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *mixrampdelay(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *replay_gain_mode(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *replay_gain_status(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+//playlist commands
+char *save(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *load(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *listplaylist(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *listplaylistinfo(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *rm(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *renameF(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistdelete(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistmove(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistclear(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistadd(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *listplaylists(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+//queue commands
+char *add(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *addid(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *rangeid(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *deleteF (intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *deleteid(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlist(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *shuffle(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *clear(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *plchanges(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *plchangesposid(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistinfo(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistid(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistfind(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistsearch(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *prio(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *prioid(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *move(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *moveid(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *swap(intf_thread_t *intfa, char *arguments)
+{
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *swapid(intf_thread_t *intfa, char *arguments)
 {
     char *output = malloc(sizeof(char) * 4096);
     bzero(output, 4096);
@@ -610,500 +982,6 @@ char *devices(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
-//partition commands
-char *partition(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listpartitions(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *newpartition(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *delpartition(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *moveoutput(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-//player commands
-char *play(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *stop(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *currentsong(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *pause(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *status(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *next(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *previous(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *repeat(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *single(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *consume(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *random(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *clearerror(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *seek(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *seekid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *seekcur(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *crossfade(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *mixrampdb(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *mixrampdelay(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *replay_gain_mode(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *replay_gain_status(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-//playlist commands
-char *save(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *load(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listplaylist(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listplaylistinfo(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *rm(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *rename(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistdelete(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistmove(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistclear(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistadd(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listplaylists(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-//queue commands
-char *add(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *addid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *rangeid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *delete (intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *deleteid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlist(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *shuffle(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *clear(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *plchanges(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *plchangesposid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistinfo(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistfind(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistsearch(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *prio(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *prioid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *move(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *moveid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *swap(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *swapid(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-//sticker commands
-char *sticker(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-//storage commands
-char *listmounts(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *mount(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *unmount(intf_thread_t *intfa, char *arguments)
-{
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
 //tag commands
 char *addtagid(intf_thread_t *intfa, char *arguments)
 {
@@ -1121,6 +999,7 @@ char *cleartagid(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+
 /*Helper Functions*/
 static int string_compare_function(const void *key, const void *arrayElement)
 {
@@ -1176,7 +1055,8 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
     }
 
     // 3. Event Loop
-    while (true)
+    bool v=true;
+    while (v)
     {
         readySockets = currentSockets;
         if (select(FD_SETSIZE, &readySockets, NULL, NULL, NULL) < 0)
@@ -1204,13 +1084,13 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     // char *out = command->commandName(intfa, "arg"); //correct way of recieving char* from function
                     // msg_Info(intfa,"%s",out);
                     // free(out);  //clear memory allocation.
-                    // msg_Info(intfa,"1");
+                    // //msg_Info(intfa,"1");
                     // vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-                    // msg_Info(intfa,"2");
+                    // //msg_Info(intfa,"2");
                     // vlc_player_t *player=vlc_playlist_GetPlayer(playlist);
-                    // msg_Info(intfa,"3");
-                    // input_item_t *media=input_item_New("file:///home/nightwayne/Music/IDWItTakes.mp3","wit"); //URI file path error
-                    // msg_Info(intfa,"4");
+                    // //msg_Info(intfa,"3");
+                    // input_item_t *media=input_item_New("file/mpga:///home/nightwayne/Music/IDWItTakes.mp3","wit"); //URI file path error
+                    // //msg_Info(intfa,"4");
                     // //playing1
                     // if(player==NULL)
                     // msg_Info(intfa,"NN");
@@ -1218,19 +1098,21 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     // msg_Info(intfa,"NNds");
                     // int t;
                     // vlc_player_Lock(player);
-                    // msg_Info(intfa,"5");
+                    // //msg_Info(intfa,"5");
                     // vlc_player_SetCurrentMedia(player, media);
-                    // msg_Info(intfa,"6");
+                    // //msg_Info(intfa,"6");
                     // t=vlc_player_Start(player);
-                    // msg_Info(intfa,"7",t);
+                    // //msg_Info(intfa,"7 %d",t);
                     // sleep(2);
-                    // msg_Info(intfa,"8");
+                    // //msg_Info(intfa,"8");
                     // vlc_player_Stop(player);
-                    // msg_Info(intfa,"9");
+                    // //msg_Info(intfa,"9");
                     // vlc_player_Unlock(player);
-                    // msg_Info(intfa,"10");
+                    // //msg_Info(intfa,"10");
                     // input_item_Release (media);
-                    // msg_Info(intfa,"11");
+                    // //msg_Info(intfa,"11");
+                    //vlc_player_Delete(player);
+                    // //msg_Info(intfa,"12");
                     // //playing2
                     // vlc_playlist_Lock(playlist);
                     // msg_Info(intfa,"%d",vlc_playlist_Count(playlist));
@@ -1246,6 +1128,7 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     char *output = "OK MPD Version 0.21.25";
                     send(client_fd, output, strlen(output), 0);
                     msg_Info(intfa, "server read: %d\n", client_fd);
+                    //v=false;
                 }
                 else
                 {
@@ -1255,10 +1138,8 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
 
                     // 1. read operation ->read data of unknown length - ask mentors
                     int n;
-                    char *input = malloc(sizeof(char) * 4096), *arguments = malloc(sizeof(char) * 4096), *command = malloc(sizeof(char) * 4096);
-                    bzero(input, 4096);
-                    bzero(arguments, 4096);
-                    bzero(command, 4096);
+                    char *input = malloc(sizeof(char) * 4096), *argumentsC = malloc(sizeof(char) * 2048), *command = malloc(sizeof(char) * 1024);
+                    bzero(input, 4096); bzero(argumentsC, 2048); bzero(command, 1024);
                     if ((n = read(client_fd, input, 4095)) < 0)
                     {
                         perror("read");
@@ -1267,39 +1148,41 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     input[strlen(input) - 1] = '\0';
 
                     // 2. Size 0 input -handled
-                    if (strlen(input) == 0)
-                    {
-                        //continue; ->if continued 0 length input, then needs new approach.
-                        char *arguments = "arg";
-                        commandFunc *command = searchCommand("listall"); //or use "commands"
-                        char *output = command->commandName(intfa, arguments);
-                        msg_Info(intfa, "Size0 %s", output);
-                        send(client_fd, output, strlen(output), 0);
-                        free(output);
-                    }
+                    // if (strlen(input) == 0)
+                    // {
+                    //     //continue; ->if continued 0 length input, then needs new approach.
+                    //     commandFunc *command = searchCommand("list"); //or use "commands"
+                    //     char *output = command->commandName(intfa, "arg");
+                    //     msg_Info(intfa, "Size0 %s", output);
+                    //     send(client_fd, output, strlen(output), 0);
+                    //     free(output);
+                    // }
 
                     // 3. remove whitespace in left and right ->check
                     trim(input);
-
+                    
                     // 4. separate command and argument using whitespace
-                    arguments = strchr(input, ' ');
-                    if (arguments != NULL)
+                    char* arg = strchr(input, ' ');
+                    *argumentsC=*arg;
+                    if (argumentsC != NULL)
                     {
                         int s = strlen(input);
-                        strncat(command, input, s - strlen(arguments));
-                        trim(arguments);
+                        strncat(command, input, s - strlen(argumentsC));
+                        trim(argumentsC);
                     }
                     else
-                        arguments = "";
-                    msg_Info(intfa, "input:%s.\ninputSize:%ld.\n\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), arguments, strlen(arguments));
+                    argumentsC = "\0";   
+                    // 4.5. Check/Debug
+                    //msg_Info(intfa,"%p %p %p",input, argumentsC, command);
+                    //msg_Info(intfa,"hah %p %p",arg, argumentsC);
+                    //msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
 
                     // 5. check for lowercase - here I am explicity converting to small string
-                    //tolower(command);
                     for (int i = 0; command[i]; i++)
                     {
                         command[i] = tolower(command[i]);
                     }
-
+                    
                     // 6. search for the command in the array
                     // commandFunc* commandF=searchCommand(input);
                     // if(commandF==NULL)
@@ -1312,20 +1195,18 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     // }
                     // else
                     // {
-                    //     char* output = commandF->commandName(intfa, arguments);
+                    //     char* output = commandF->commandName(intfa, argumentsC);
                     //     send(client_fd, output, strlen(output), 0);
                     //     free(output);
                     // }
 
                     // 7. free up dynamically allocated data
-                    free(input);
-                    free(command);
-                    free(arguments);
+                    free(input); free(command); free(argumentsC);
                     FD_CLR(client_fd, &currentSockets); //remove client_fd to current
                 }
             }
-        } //for
-    }     //while
+        }//for
+    }//while
 
     // 4. Function End
     return NULL;
@@ -1418,9 +1299,14 @@ static void Close(vlc_object_t *obj)
 /* Module descriptor */
 vlc_module_begin()
     set_shortname(N_("MPD"))
-        set_description(N_("MPD Control Interface Module"))
-            set_capability("interface", 0)
-                set_callbacks(Open, Close)
-                    set_category(CAT_INTERFACE)
+    set_description(N_("MPD Control Interface Module"))
+    set_capability("interface", 0)
+    set_callbacks(Open, Close)
+    set_category(CAT_INTERFACE)
     //add_string("variable", "world", "Target", "Whom to say hello to.", false) //--use case not known til now!
-    vlc_module_end()
+vlc_module_end()
+
+/*
+I was looking into the related modules, and they seem to use [call-back mechanism on state changes](https://code.videolan.org/gsoc/gsoc2020/arnav-ishaan/vlc/-/blob/mpd/modules/control/rc.c#L1856).
+From what I discussed with my mentor, he told me callbacks and stuffs can be implemented later on, after getting on with the medialibrary and playback stuff. 
+*/
