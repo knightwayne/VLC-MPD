@@ -15,10 +15,11 @@
 #include <vlc_vector.h>
 #include <vlc_memstream.h>
 /* Added during Playback Development */
-#include<vlc_mpd.h>
+#include <vlc_mpd.h>
 #include <vlc_media_library.h>
 #include <vlc_player.h>
 #include <vlc_playlist.h>
+#include <vlc_url.h>
 #include <vlc_common.h>
 #include <vlc_plugin.h>
 #include <vlc_interface.h>
@@ -27,26 +28,60 @@
 #include <vlc_vout.h>
 #include <vlc_actions.h>
 #define PORT 6600
+#define STATUS_CHANGE "status change: "
 
 /*struct and array declarations*/ /*System Variables Declaration*/
 struct intf_sys_t
 {
     int server_fd;
     vlc_thread_t thread;
+
     vlc_medialibrary_t *vlc_medialibrary;
     vlc_playlist_t *vlc_playlist;
-    vlc_player_t *vlc_player;
+    //vlc_player_t *vlc_player;
+    vlc_player_listener_id *player_listener;
+    //vlc_player_aout_listener_id *player_aout_listener;
+
+    /* status changes */
+    vlc_mutex_t status_lock;
+    enum vlc_player_state last_state;
+    //bool                    b_input_buffering;
 };
 typedef struct commandFunc
 {
     const char *command;
     char *(*commandName)(intf_thread_t *intf, char *arguments); /*some-variable for passing*/ //i think it would be better to pass an array of arguments
 } commandFunc;
+
 /*Function Declarations*/
 static int string_compare_function(const void *key, const void *arrayElement);
 commandFunc *searchCommand(const char *key);
 void trim(char *s);
 void *clientHandling(void *arg);
+void parseInput(intf_thread_t *intfa, char *input, char *command, char *argumentsC);
+static void
+player_on_state_changed(vlc_player_t *player, enum vlc_player_state state, void *data)
+{
+    VLC_UNUSED(player);
+    char const *psz_cmd;
+    switch (state)
+    {
+    case VLC_PLAYER_STATE_STOPPING:
+    case VLC_PLAYER_STATE_STOPPED:
+        psz_cmd = "stop";
+        break;
+    case VLC_PLAYER_STATE_PLAYING:
+        psz_cmd = "play";
+        break;
+    case VLC_PLAYER_STATE_PAUSED:
+        psz_cmd = "pause";
+        break;
+    default:
+        psz_cmd = "";
+        break;
+    }
+    intf_thread_t *p_intf = data;
+}
 #pragma region
 //command array
 const commandFunc command_list_array[] = {
@@ -350,7 +385,6 @@ char *tagtypes(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
-#pragma endregion
 
 //database commands
 char *find(intf_thread_t *intfa, char *arguments)
@@ -708,7 +742,7 @@ char *rangeid(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
-char *deleteF (intf_thread_t *intfa, char *arguments)
+char *deleteF(intf_thread_t *intfa, char *arguments)
 {
     char *output = malloc(sizeof(char) * 4096);
     bzero(output, 4096);
@@ -999,6 +1033,7 @@ char *cleartagid(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+#pragma endregion
 
 /*Helper Functions*/
 static int string_compare_function(const void *key, const void *arrayElement)
@@ -1029,12 +1064,109 @@ void trim(char *s)
     }
     s[j + 1] = '\0';
 }
+void parseInput(intf_thread_t *intfa, char *input, char *command, char *argumentsC)
+{ // 3. remove whitespace in left and right ->check
+    char *arg = NULL;
+    //msg_Info(intfa, "%s %ld", input, strlen(input));
+    trim(input);
+    //msg_Info(intfa, "%s %ld", input, strlen(input));
+
+    // 4. separate command and argument using whitespace
+    // msg_Info(intfa, "%p %p %p %p", input, command, argumentsC, arg);
+    // //msg_Info(intfa,"arg:%s size:%ld",arg, strlen(arg));
+    // msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
+
+    arg = strchr(input, ' ');
+    int i = 0;
+    while (arg[i] != '\0')
+    {
+        argumentsC[i] = arg[i];
+        i++;
+    }
+    argumentsC[i] = '\0';
+
+    // msg_Info(intfa, "%p %p %p %p", input, command, argumentsC, arg);
+    // msg_Info(intfa, "arg:%s size:%ld", arg, strlen(arg));
+    // msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
+
+    if (argumentsC != NULL)
+    {
+        int s = strlen(input);
+        strncat(command, input, s - strlen(argumentsC));
+        //msg_Info(intfa, "yes arg");
+        trim(argumentsC);
+    }
+    else
+        argumentsC = "\0";
+    // 4.5. Check/Debug
+    // msg_Info(intfa, "%p %p %p %p", input, command, argumentsC, arg);
+    // msg_Info(intfa, "arg:%s size:%ld", arg, strlen(arg));
+    // msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
+
+    // 5. check for lowercase - here I am explicity converting to small string
+    for (int i = 0; command[i]; i++)
+    {
+        command[i] = tolower(command[i]);
+    }
+    // msg_Info(intfa, "%p %p %p %p", input, command, argumentsC, arg);
+    // msg_Info(intfa, "arg:%s size:%ld", arg, strlen(arg));
+    // msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
+}
+void playTest(intf_thread_t *intfa, input_item_t *media)
+{
+    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_player_Lock(player);
+    //msg_Info(intfa,"play1");
+    int i=vlc_player_SetCurrentMedia(player, media);
+    //msg_Info(intfa,"6 %d",i);
+    i=vlc_player_Start(player);
+    //msg_Info(intfa,"play %d",i);
+    //msg_Info(intfa,"play2");
+    vlc_player_Unlock(player);
+}
+void pauseTest(intf_thread_t *intfa)
+{
+    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_player_Lock(player);
+    vlc_player_Stop(player);
+    vlc_player_Unlock(player);
+}
+// static void PlaylistDoVoid(intf_thread_t *intf, int (*cb)(vlc_playlist_t *))
+// {
+//     vlc_playlist_t *playlist = intf->p_sys->vlc_playlist;
+//     vlc_playlist_Lock(playlist);
+//     msg_Info(intf,"playlistcbslock");
+//     char* inp=vlc_path2uri("/home/nightwayne/Music/IDWItTakes.mp3","file");
+//     input_item_t *media=input_item_New(inp,"wit"); //URI file path error
+//     int i = vlc_playlist_InsertOne(playlist, 0, media);
+//     msg_Info(intf,"playlistcbslockcall");
+//     cb(playlist);
+//     msg_Info(intf,"playlistcbsbyelock");
+//     vlc_playlist_Unlock(playlist);
+// }
+// static void PlaylistPlay(intf_thread_t *intf)
+// {
+//     msg_Info(intf,"play");
+//     PlaylistDoVoid(intf, vlc_playlist_Start);
+// }
+// static int PlaylistDoStop(vlc_playlist_t *playlist)
+// {
+//     vlc_playlist_Stop(playlist);
+//     return 0;
+// }
+// static void PlaylistStop(intf_thread_t *intf)
+// {
+//     PlaylistDoVoid(intf, PlaylistDoStop);
+// }
 
 /*Client Handling Thread Function*/
 void *clientHandling(void *threadArg) //Polling + Client Req Handling
 {
     // 0. Function Start
     intf_thread_t *intfa = (intf_thread_t *)threadArg;
+    intf_sys_t *p_sys = intfa->p_sys;
     msg_Info(intfa, "Hello from thread side!");
 
     // 1. Initialising Client
@@ -1055,7 +1187,7 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
     }
 
     // 3. Event Loop
-    bool v=true;
+    bool v = true;
     while (v)
     {
         readySockets = currentSockets;
@@ -1079,51 +1211,7 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                         exit(EXIT_FAILURE);
                     }
                     FD_SET(client_fd, &currentSockets);
-                    //medialibraryInit
-                    // commandFunc* command=&command_list_array[0];
-                    // char *out = command->commandName(intfa, "arg"); //correct way of recieving char* from function
-                    // msg_Info(intfa,"%s",out);
-                    // free(out);  //clear memory allocation.
-                    // //msg_Info(intfa,"1");
-                    // vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-                    // //msg_Info(intfa,"2");
-                    // vlc_player_t *player=vlc_playlist_GetPlayer(playlist);
-                    // //msg_Info(intfa,"3");
-                    // input_item_t *media=input_item_New("file/mpga:///home/nightwayne/Music/IDWItTakes.mp3","wit"); //URI file path error
-                    // //msg_Info(intfa,"4");
-                    // //playing1
-                    // if(player==NULL)
-                    // msg_Info(intfa,"NN");
-                    // if(playlist==NULL)
-                    // msg_Info(intfa,"NNds");
-                    // int t;
-                    // vlc_player_Lock(player);
-                    // //msg_Info(intfa,"5");
-                    // vlc_player_SetCurrentMedia(player, media);
-                    // //msg_Info(intfa,"6");
-                    // t=vlc_player_Start(player);
-                    // //msg_Info(intfa,"7 %d",t);
-                    // sleep(2);
-                    // //msg_Info(intfa,"8");
-                    // vlc_player_Stop(player);
-                    // //msg_Info(intfa,"9");
-                    // vlc_player_Unlock(player);
-                    // //msg_Info(intfa,"10");
-                    // input_item_Release (media);
-                    // //msg_Info(intfa,"11");
-                    //vlc_player_Delete(player);
-                    // //msg_Info(intfa,"12");
-                    // //playing2
-                    // vlc_playlist_Lock(playlist);
-                    // msg_Info(intfa,"%d",vlc_playlist_Count(playlist));
-                    // vlc_playlist_Clear(playlist);
-                    // msg_Info(intfa,"%d",vlc_playlist_Count(playlist));
-                    // vlc_playlist_InsertOne(playlist,0,media);
-                    // msg_Info(intfa,"%d",vlc_playlist_Count(playlist));
-                    // vlc_playlist_Start(playlist);
-                    // msg_Info(intfa,"%d",vlc_playlist_Count(playlist));
-                    // vlc_playlist_Unlock(playlist);
-                    // input_item_Release (media);
+
                     // 1. return OK connection established
                     char *output = "OK MPD Version 0.21.25";
                     send(client_fd, output, strlen(output), 0);
@@ -1139,7 +1227,9 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     // 1. read operation ->read data of unknown length - ask mentors
                     int n;
                     char *input = malloc(sizeof(char) * 4096), *argumentsC = malloc(sizeof(char) * 2048), *command = malloc(sizeof(char) * 1024);
-                    bzero(input, 4096); bzero(argumentsC, 2048); bzero(command, 1024);
+                    bzero(input, 4096);
+                    bzero(argumentsC, 2048);
+                    bzero(command, 1024);
                     if ((n = read(client_fd, input, 4095)) < 0)
                     {
                         perror("read");
@@ -1148,42 +1238,85 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     input[strlen(input) - 1] = '\0';
 
                     // 2. Size 0 input -handled
-                    // if (strlen(input) == 0)
-                    // {
-                    //     //continue; ->if continued 0 length input, then needs new approach.
-                    //     commandFunc *command = searchCommand("list"); //or use "commands"
-                    //     char *output = command->commandName(intfa, "arg");
-                    //     msg_Info(intfa, "Size0 %s", output);
-                    //     send(client_fd, output, strlen(output), 0);
-                    //     free(output);
-                    // }
-
-                    // 3. remove whitespace in left and right ->check
-                    trim(input);
-                    
-                    // 4. separate command and argument using whitespace
-                    char* arg = strchr(input, ' ');
-                    *argumentsC=*arg;
-                    if (argumentsC != NULL)
+                    if (strlen(input) == 0)
                     {
-                        int s = strlen(input);
-                        strncat(command, input, s - strlen(argumentsC));
-                        trim(argumentsC);
+                        //continue; ->if continued 0 length input, then needs new approach.
+                        //commandFunc *command = searchCommand("list"); //or use "commands"
+                        //char *output = command->commandName(intfa, "arg");
+                        char* output="OK\n";
+                        msg_Info(intfa, "Size0 %s", output);
+                        send(client_fd, output, strlen(output), 0);
+                        //free(output);
                     }
                     else
-                    argumentsC = "\0";   
-                    // 4.5. Check/Debug
-                    //msg_Info(intfa,"%p %p %p",input, argumentsC, command);
-                    //msg_Info(intfa,"hah %p %p",arg, argumentsC);
-                    //msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
-
-                    // 5. check for lowercase - here I am explicity converting to small string
-                    for (int i = 0; command[i]; i++)
                     {
-                        command[i] = tolower(command[i]);
+                        // Parse Input
+                        parseInput(intfa,input,command,argumentsC);
                     }
+
+                    // State Change Management
+                    vlc_player_t *player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
+                    input_item_t *item = NULL;
+                    vlc_player_Lock(player);
+                    if( item == NULL )
+                    {
+                        item = vlc_player_GetCurrentMedia(player);
+                        /* New input has been registered */
+                        if( item )
+                        {
+                            char *psz_uri = input_item_GetURI( item );
+                            msg_Info(intfa, "STATUS_CHANGE ( new input: %s )", psz_uri );
+                            free( psz_uri );
+                        }
+                    }
+                    if( !vlc_player_IsStarted( player ) )
+                    {
+                        if (item)
+                            item = NULL;
+                        p_sys->last_state = VLC_PLAYER_STATE_STOPPED;
+                        msg_Info(intfa, "STATUS_CHANGE ( stop state: 0 )" );
+                    }
+                    if( item != NULL )
+                    {
+                        enum vlc_player_state state = vlc_player_GetState(player);
+                        if (p_sys->last_state != state)
+                        {
+                            switch (state)
+                            {
+                                case VLC_PLAYER_STATE_STOPPING:
+                                case VLC_PLAYER_STATE_STOPPED:
+                                    msg_Info(intfa, "STATUS_CHANGE ( stop state: 5 )");
+                                    break;
+                                case VLC_PLAYER_STATE_PLAYING:
+                                    msg_Info(intfa, "STATUS_CHANGE ( play state: 3 )");
+                                    break;
+                                case VLC_PLAYER_STATE_PAUSED:
+                                    msg_Info(intfa, "STATUS_CHANGE ( pause state: 4 )");
+                                    break;
+                                default:
+                                    break;
+                            }
+                            p_sys->last_state = state;
+                        }
+                    }
+                    // if( item && b_showpos )
+                    // {
+                    //     i_newpos = 100 * vlc_player_GetPosition( player );
+                    //     if( i_oldpos != i_newpos )
+                    //     {
+                    //         i_oldpos = i_newpos;
+                    //         msg_rc( "pos: %d%%", i_newpos );
+                    //     }
+                    // }
+                    vlc_player_Unlock(player);
                     
-                    // 6. search for the command in the array
+                    // // 6. search for the command in the array
+                    char* inp=vlc_path2uri("/home/nightwayne/Music/IDWItTakes.mp3","file");
+                    input_item_t *media=input_item_New(inp,"wit"); //URI file path error
+                    playTest(intfa,media);
+                    sleep(3);
+                    pauseTest(intfa);
+
                     // commandFunc* commandF=searchCommand(input);
                     // if(commandF==NULL)
                     // {
@@ -1201,7 +1334,9 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     // }
 
                     // 7. free up dynamically allocated data
-                    free(input); free(command); free(argumentsC);
+                    free(input);
+                    free(command);
+                    free(argumentsC);
                     FD_CLR(client_fd, &currentSockets); //remove client_fd to current
                 }
             }
@@ -1258,8 +1393,9 @@ static int Open(vlc_object_t *obj)
     intf->p_sys = p_sys;
     p_sys->server_fd = server_fd;
     p_sys->vlc_medialibrary = vlc_ml_instance_get(obj);
-    p_sys->vlc_playlist = vlc_intf_GetMainPlaylist(intf);            /*vlc_intf_GetMainPlaylist(intfa);*/
-    p_sys->vlc_player = vlc_playlist_GetPlayer(p_sys->vlc_playlist); /*vlc_playlist_GetPlayer(sys->vlc_playlist);*/
+    p_sys->vlc_playlist = vlc_intf_GetMainPlaylist(intf); /*vlc_intf_GetMainPlaylist(intfa);*/
+    //p_sys->vlc_player = vlc_playlist_GetPlayer(p_sys->vlc_playlist); /*vlc_playlist_GetPlayer(sys->vlc_playlist);*/
+    vlc_player_t *player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
 
     // 6. Client Handling
     int i = 0;
@@ -1268,10 +1404,40 @@ static int Open(vlc_object_t *obj)
         perror("clone failed");
         exit(EXIT_FAILURE);
     }
+    static struct vlc_player_cbs const player_cbs =
+        {
+            .on_state_changed = player_on_state_changed /*,*/
+            // .on_buffering_changed = player_on_buffering_changed,
+            // .on_rate_changed = player_on_rate_changed,
+            // .on_position_changed = player_on_position_changed,
+        };
+    vlc_player_Lock(player);
+    p_sys->player_listener = vlc_player_AddListener(player, &player_cbs, intf);
+    if (!p_sys->player_listener)
+    {
+        vlc_player_Unlock(player);
+        goto error;
+    }
+    // static struct vlc_player_aout_cbs const player_aout_cbs =
+    // {
+    //     .on_volume_changed = player_aout_on_volume_changed,
+    // };
+    // p_sys->player_aout_listener =
+    //     vlc_player_aout_AddListener(player, &player_aout_cbs, p_intf);
+    vlc_player_Unlock(player);
+    // if (!p_sys->player_aout_listener)
+    //     goto error;
 
     // 7. Module End
     return VLC_SUCCESS;
 error:
+    if (p_sys->player_listener)
+    {
+        vlc_player_Lock(player);
+        vlc_player_RemoveListener(player, p_sys->player_listener);
+        vlc_player_Unlock(player);
+    }
+    free(p_sys);
     return VLC_EGENERIC;
 }
 
@@ -1284,13 +1450,19 @@ static void Close(vlc_object_t *obj)
     // 1. Freeing up resources
     // -those dynamically allocated, not static allocation (like int i = 10;)
     // check for appropriate dynamic allocation, I have used only static allocation
-    intf_sys_t *sys = intf->p_sys;
+    intf_sys_t *p_sys = intf->p_sys;
     vlc_cancel(intf->p_sys->thread);
     vlc_join(intf->p_sys->thread, NULL);
+    vlc_player_t *player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
+    vlc_player_Lock(player);
+    //vlc_player_aout_RemoveListener(player, p_sys->player_aout_listener);
+    vlc_player_RemoveListener(player, p_sys->player_listener);
+    vlc_player_Unlock(player);
+
     // free(sys->vlc_medialibrary);
     // free(sys->vlc_playlist);
     // free(sys->vlc_player);
-    free(sys);
+    free(p_sys);
 
     // 2. Module End
     msg_Info(intf, "Good bye MPD Server");
@@ -1299,14 +1471,48 @@ static void Close(vlc_object_t *obj)
 /* Module descriptor */
 vlc_module_begin()
     set_shortname(N_("MPD"))
-    set_description(N_("MPD Control Interface Module"))
-    set_capability("interface", 0)
-    set_callbacks(Open, Close)
-    set_category(CAT_INTERFACE)
+        set_description(N_("MPD Control Interface Module"))
+            set_capability("interface", 0)
+                set_callbacks(Open, Close)
+                    set_category(CAT_INTERFACE)
     //add_string("variable", "world", "Target", "Whom to say hello to.", false) //--use case not known til now!
-vlc_module_end()
+    vlc_module_end()
 
-/*
+    /*
 I was looking into the related modules, and they seem to use [call-back mechanism on state changes](https://code.videolan.org/gsoc/gsoc2020/arnav-ishaan/vlc/-/blob/mpd/modules/control/rc.c#L1856).
 From what I discussed with my mentor, he told me callbacks and stuffs can be implemented later on, after getting on with the medialibrary and playback stuff. 
+*/
+    /*
+msg_Info(intfa,"1");
+vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+msg_Info(intfa,"2");
+vlc_player_t *player=vlc_playlist_GetPlayer(playlist);
+msg_Info(intfa,"3");
+char* inp=vlc_path2uri("/home/nightwayne/Music/IDWItTakes.mp3","file");
+input_item_t *media=input_item_New(inp,"wit"); //URI file path error
+msg_Info(intfa,"4");
+//playing1
+if(player==NULL)
+msg_Info(intfa,"NN");
+if(playlist==NULL)
+msg_Info(intfa,"NNds");
+int t;
+vlc_player_Lock(player);
+msg_Info(intfa,"5");
+t=vlc_player_SetCurrentMedia(player, media);
+msg_Info(intfa,"6 %d",t);
+t=vlc_player_Start(player);
+msg_Info(intfa,"7 %d",t);
+sleep(2);
+msg_Info(intfa,"8");
+vlc_player_Stop(player);
+msg_Info(intfa,"9");
+vlc_player_Unlock(player);
+msg_Info(intfa,"10");
+input_item_Release (media);
+msg_Info(intfa,"11");
+vlc_player_Delete(player);
+msg_Info(intfa,"12");
+vlc_playlist_Delete(playlist);
+msg_Info(intfa,"13");
 */
