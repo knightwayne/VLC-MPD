@@ -2373,35 +2373,21 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     vlc_player_Unlock(player);
                     
                     // // 6. search for the command in the array
-                    //playback testing
-                    // vlc_playlist_Lock(intfa->p_sys->vlc_playlist);
-                    // char* inp=vlc_path2uri("/home/nightwayne/Music/IDWItTakes.mp3","file");
-                    // input_item_t *media=input_item_New(inp,"wit"); //URI file path error
-                    // size_t ind=vlc_playlist_Count(intfa->p_sys->vlc_playlist);
-                    // vlc_playlist_InsertOne(intfa->p_sys->vlc_playlist,ind,media);
-                    // media=input_item_New("file:///home/nightwayne/Music/Natural.mp3","Nat");
-                    // ind=vlc_playlist_Count(intfa->p_sys->vlc_playlist);
-                    // vlc_playlist_InsertOne(intfa->p_sys->vlc_playlist,ind,media);
-                    // vlc_playlist_Unlock(intfa->p_sys->vlc_playlist);
-                    // playTest(intfa,media);
-                    // sleep(7);
-                    // pauseTest(intfa);
-
-                    // commandFunc* commandF=searchCommand(input);
-                    // if(commandF==NULL)
-                    // {
-                    //     //study the ACK.hxx & follow up
-                    //     msg_Info(intfa,"command not found\n");
-                    //     send(client_fd, "OK\n", strlen("OK\n"), 0);
-                    //     //send(client_fd, "ACK command not found\n", strlen("ACK command not found\n"), 0);
-                    //     FD_CLR(client_fd, &currentSockets); //remove client_fd to current
-                    // }
-                    // else
-                    // {
-                    //     char* output = commandF->commandName(intfa, argumentsC);
-                    //     send(client_fd, output, strlen(output), 0);
-                    //     free(output);
-                    // }
+                    commandFunc* commandF=searchCommand(input);
+                    if(commandF==NULL)
+                    {
+                        //study the ACK.hxx & follow up
+                        msg_Info(intfa,"command not found\n");
+                        send(client_fd, "OK\n", strlen("OK\n"), 0);
+                        //send(client_fd, "ACK command not found\n", strlen("ACK command not found\n"), 0);
+                        FD_CLR(client_fd, &currentSockets); //remove client_fd to current
+                    }
+                    else
+                    {
+                        char* output = commandF->commandName(intfa, argumentsC);
+                        send(client_fd, output, strlen(output), 0);
+                        free(output);
+                    }
 
                     // 7. free up dynamically allocated data
                     free(input);    free(command);  free(argumentsC);
@@ -2612,4 +2598,19 @@ static void PlaylistStop(intf_thread_t *intf)
 {
     PlaylistDoVoid(intf, PlaylistDoStop);
 }
+*/
+/*
+    //playback testing
+    // vlc_playlist_Lock(intfa->p_sys->vlc_playlist);
+    // char* inp=vlc_path2uri("/home/nightwayne/Music/IDWItTakes.mp3","file");
+    // input_item_t *media=input_item_New(inp,"wit"); //URI file path error
+    // size_t ind=vlc_playlist_Count(intfa->p_sys->vlc_playlist);
+    // vlc_playlist_InsertOne(intfa->p_sys->vlc_playlist,ind,media);
+    // media=input_item_New("file:///home/nightwayne/Music/Natural.mp3","Nat");
+    // ind=vlc_playlist_Count(intfa->p_sys->vlc_playlist);
+    // vlc_playlist_InsertOne(intfa->p_sys->vlc_playlist,ind,media);
+    // vlc_playlist_Unlock(intfa->p_sys->vlc_playlist);
+    // playTest(intfa,media);
+    // sleep(7);
+    // pauseTest(intfa);
 */
