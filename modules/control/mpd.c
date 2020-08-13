@@ -1,10 +1,11 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#pragma region
 /*Standard Header Files*/
 #include <stdlib.h>
 #include <ctype.h>
-//#include <cstdlib.h>
 /* VLC core API headers */
 #include <vlc_common.h>
 #include <vlc_plugin.h>
@@ -29,136 +30,55 @@
 #include <vlc_aout.h>
 #include <vlc_vout.h>
 #include <vlc_actions.h>
+/* Macros - should make them configurable?*/
 #define PORT 6600
 #define STATUS_CHANGE "status change: "
 
-/*struct and array declarations*/ /*System Variables Declaration*/
+/* System Variables, Struct and Vector Declaration */
 struct intf_sys_t
 {
+    /* common function variables */
     int server_fd;
     vlc_thread_t thread;
 
+    /* mpd variables */
     vlc_medialibrary_t *vlc_medialibrary;
     vlc_playlist_t *vlc_playlist;
     //vlc_player_t *vlc_player;
+
+    /* player listeners */
     vlc_player_listener_id *player_listener;
     //vlc_player_aout_listener_id *player_aout_listener;
 
     /* status changes */
     vlc_mutex_t status_lock;
     enum vlc_player_state last_state;
-    //bool                    b_input_buffering;
+    //bool b_input_buffering;
 };
 typedef struct commandFunc
 {
     const char *command;
-    char *(*commandName)(intf_thread_t *intf, char *arguments); /*some-variable for passing*/ //i think it would be better to pass an array of arguments
+    char *(*commandName)(intf_thread_t *intf, char *arguments);
 } commandFunc;
 typedef struct VLC_VECTOR(char*) vect;
 
-/*Function Declarations*/
-//itoaF function implementation
-#pragma region
-int atoiF(char* str) 
-{ 
-    // Initialize result 
-    int res = 0; 
-  
-    // Iterate through all characters 
-    // of input string and update result 
-    for (int i = 0; str[i] 
-                    != '\0'; 
-         ++i) 
-        res = res * 10 + str[i] - '0'; 
-  
-    // return result. 
-    return res; 
-}
-void reverse(char str[], int length) 
-{ 
-    int start = 0; 
-    int end = length -1; 
-    while (start < end) 
-    { 
-        swap(*(str+start), *(str+end)); 
-        start++; 
-        end--; 
-    } 
-} 
-  
-// Implementation of itoaF() 
-char* itoaF(int num, char* str, int base) 
-{ 
-    int i = 0; 
-    bool isNegative = false; 
-  
-    /* Handle 0 explicitely, otherwise empty string is printed for 0 */
-    if (num == 0) 
-    { 
-        str[i++] = '0'; 
-        str[i] = '\0'; 
-        return str; 
-    } 
-  
-    // In standard itoaF(), negative numbers are handled only with  
-    // base 10. Otherwise numbers are considered unsigned. 
-    if (num < 0 && base == 10) 
-    { 
-        isNegative = true; 
-        num = -num; 
-    } 
-  
-    // Process individual digits 
-    while (num != 0) 
-    { 
-        int rem = num % base; 
-        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
-        num = num/base; 
-    } 
-  
-    // If number is negative, append '-' 
-    if (isNegative) 
-        str[i++] = '-'; 
-  
-    str[i] = '\0'; // Append string terminator 
-  
-    // Reverse the string 
-    reverse(str, i); 
-  
-    return str; 
-} 
-#pragma endregion
-static int string_compare_function(const void *key, const void *arrayElement);
+// Function Declaration
+void reverse(char str[], int length);
+char* itoaFunction(int num, char* str, int base);
+int atoiFunction(char* str);
+static int stringCompare(const void *key, const void *arrayElement);
 commandFunc *searchCommand(const char *key);
 void trim(char *s);
 void parseInput(intf_thread_t *intfa, char *input, char *command, char *argumentsC);
 void getArg(intf_thread_t *intfa, char* str,vect* v);
 void destroyVector(vect* v);
 void *clientHandling(void *arg);
-static void player_on_state_changed(vlc_player_t *player, enum vlc_player_state state, void *data)
-{
-    VLC_UNUSED(player);
-    char const *psz_cmd;
-    switch (state)
-    {
-    case VLC_PLAYER_STATE_STOPPING:
-    case VLC_PLAYER_STATE_STOPPED:
-        psz_cmd = "stop";
-        break;
-    case VLC_PLAYER_STATE_PLAYING:
-        psz_cmd = "play";
-        break;
-    case VLC_PLAYER_STATE_PAUSED:
-        psz_cmd = "pause";
-        break;
-    default:
-        psz_cmd = "";
-        break;
-    }
-    intf_thread_t *p_intf = data;
-}
+static void player_on_state_changed(vlc_player_t *player, enum vlc_player_state state, void *data);
+#pragma endregion
+
+/* MPD Interaction Commands Not Available */
 #pragma region
-//command array
+/* Command Array */
 const commandFunc command_list_array[] = {
     //{"listall", listall}
     {"add", add},
@@ -170,7 +90,7 @@ const commandFunc command_list_array[] = {
     {"clearerror", clearerror},
     {"cleartagid", cleartagid},
     {"close", closeF},
-    //{"commands", commands},
+    {"commands", commands},
     {"config", config},
     {"consume", consume},
     {"count", count},
@@ -207,7 +127,7 @@ const commandFunc command_list_array[] = {
     {"moveoutput", moveoutput},
     {"newpartition", newpartition},
     {"next", next},
-    //{"notcommands", not_commands},
+    {"notcommands", not_commands},
     {"outputs", devices},
     {"outputset", outputset},
     {"partition", partition},
@@ -263,11 +183,10 @@ const commandFunc command_list_array[] = {
     {"toggleoutput", toggleoutput},
     {"unmount", unmount},
     {"unsubscribe", unsubscribe},
-    //{"update", handle_update},
+    {"update", handle_update},
     {"urlhandlers", urlhandlers},
     {"volume", volume}};
 
-/*MPD Interaction Commands*/
 //file commands - reading music file ??
 char *read_comments(intf_thread_t *intfa, char *arguments)
 {
@@ -311,6 +230,7 @@ char *read_picture(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+
 //fingerprint commands
 char *getfingerprint(intf_thread_t *intfa, char *arguments)
 {
@@ -326,6 +246,7 @@ char *getfingerprint(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+
 //Message c2c communication
 char *subscribe(intf_thread_t *intfa, char *arguments)
 {
@@ -397,6 +318,7 @@ char *send_message(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+
 //neighbour commands
 char *listneighbors(intf_thread_t *intfa, char *arguments)
 {
@@ -412,6 +334,7 @@ char *listneighbors(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+
 //partition commands
 char *partition(intf_thread_t *intfa, char *arguments)
 {
@@ -483,6 +406,7 @@ char *moveoutput(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+
 //sticker commands
 char *sticker(intf_thread_t *intfa, char *arguments)
 {
@@ -498,6 +422,7 @@ char *sticker(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+
 //storage commands
 char *listmounts(intf_thread_t *intfa, char *arguments)
 {
@@ -541,8 +466,9 @@ char *unmount(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
-//client connection handling commands
-char *closeF(intf_thread_t *intfa, char *arguments)
+
+//tag commands ->volatile changes ->how to add them dynamically without modifying the song(media) file
+char *addtagid(intf_thread_t *intfa, char *arguments)
 {
     vect v;
     vlc_vector_init(&v);
@@ -556,35 +482,7 @@ char *closeF(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
-char *ping(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *password(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *tagtypes(intf_thread_t *intfa, char *arguments)
+char *cleartagid(intf_thread_t *intfa, char *arguments)
 {
     vect v;
     vlc_vector_init(&v);
@@ -600,147 +498,8 @@ char *tagtypes(intf_thread_t *intfa, char *arguments)
 }
 #pragma endregion
 
-//database commands
-char *find(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *findadd(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *search(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *searchadd(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *searchaddpl(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *count(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listall(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-
-    printf("listAll\n");
-    char *returnString=malloc(sizeof(char)*4096);
-    bzero(returnString,4096);
-    vlc_medialibrary_t* p_ml = intfa->p_sys->vlc_medialibrary;
-    vlc_ml_query_params_t params = vlc_ml_query_params_create(); vlc_ml_query_params_t* p_params = &params;
-    vlc_ml_media_list_t *p_vlc_ml_media_list_t=vlc_ml_list_audio_media (p_ml, p_params);
-    char *title=NULL;
-    for(int i=0;i<p_vlc_ml_media_list_t->i_nb_items;i++)
-    {
-        vlc_ml_media_t *p_vlc_ml_media_t=&p_vlc_ml_media_list_t->p_items[i];
-        title=p_vlc_ml_media_t->psz_title;
-        strcat(title,"\n");
-        strcat(returnString,title);
-        //release not working
-        //vlc_ml_media_release (p_vlc_ml_media_t);
-    }
-    //vlc_ml_media_list_release(p_vlc_ml_media_list_t);
-    msg_Info(intfa,"%s%s.",title,returnString);
-    destroyVector(&v);
-    return (char*)returnString;
-    
-}
-char *list(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listallinfo(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
+/* MPD Interaction Commands Available */
+#pragma region
 //player commands
 char *play(intf_thread_t *intfa, char *arguments)
 {
@@ -1023,7 +782,7 @@ char *seek(intf_thread_t *intfa, char *arguments)
     vlc_player_Lock(player);
     vlc_playlist_item_t *playlistItem=vlc_playlist_Get(playlist,v.data[0]);
     input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
-    vlc_tick_t t=atoiF(v.data[1]);
+    vlc_tick_t t=atoiFunction(v.data[1]);
     enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
     enum vlc_player_whence whence=VLC_PLAYER_WHENCE_ABSOLUTE;
     vlc_player_SetCurrentMedia(player, item);
@@ -1049,7 +808,7 @@ char *seekid(intf_thread_t *intfa, char *arguments)
     size_t ind=vlc_playlist_IndexOfId(playlist, v.data[0]);
     vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,ind);
     input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
-    vlc_tick_t t=atoiF(v.data[1]);
+    vlc_tick_t t=atoiFunction(v.data[1]);
     enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
     enum vlc_player_whence whence=VLC_PLAYER_WHENCE_ABSOLUTE;
     vlc_player_SetCurrentMedia(player, item);
@@ -1072,7 +831,7 @@ char *seekcur(intf_thread_t *intfa, char *arguments)
     vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
     vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
     vlc_player_Lock(player);
-    vlc_tick_t t=atoiF(v.data[1]);
+    vlc_tick_t t=atoiFunction(v.data[1]);
     enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
     enum vlc_player_whence whence=VLC_PLAYER_WHENCE_ABSOLUTE;
     if(vlc_player_IsStarted(player))
@@ -1158,236 +917,7 @@ char *replay_gain_status(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
-//playlist commands
-char *save(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    char *filename=NULL;
-    strcat(filename,"/home/nightwayne/MPD/"); //directory where playlists are saved
-    strcat(filename,v.data[0]);
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Export (playlist, filename, ".xspf");
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *load(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *listplaylist(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    for(int i=0;i<vlc_playlist_Count(playlist);i++)
-    {
-        input_item_t* item= vlc_playlist_item_GetMedia(vlc_playlist_Get(playlist,i));
-        strcat(output,item->psz_name);
-        strcat(output,"\n");
-    }
-    strcat(output, "OK\n");
-    vlc_playlist_Unlock(playlist);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *listplaylistinfo(intf_thread_t *intfa, char *arguments) //need to add meta-data, similar to playlistinfo
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    for(int i=0;i<vlc_playlist_Count(playlist);i++)
-    {
-        input_item_t* item= vlc_playlist_item_GetMedia(vlc_playlist_Get(playlist,i));
-        strcat(output,item->psz_name);
-        strcat(output,"\n");
-    }
-    strcat(output, "OK\n");
-    vlc_playlist_Unlock(playlist);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *rm(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *renameF(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistdelete(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    int ind=atoiF(v.data[1]);
-    vlc_playlist_RemoveOne (playlist,ind);
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *playlistmove(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistclear(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    vlc_playlist_Clear(playlist);
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *playlistadd(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    char* inp=vlc_path2uri(v.data[1],"file");
-    input_item_t *media=input_item_New(inp,"wit");/*dummy, needs to be extracted*/
-    size_t ind=vlc_playlist_Count(playlist);
-    vlc_playlist_InsertOne(playlist,ind,media);
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *listplaylists(intf_thread_t *intfa, char *arguments) //same problem of parsing files with particular extension - need to study regex for it
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
+
 //queue commands
 char *add(intf_thread_t *intfa, char *arguments)
 {
@@ -1425,7 +955,7 @@ char *addid(intf_thread_t *intfa, char *arguments)
     vlc_playlist_InsertOne(playlist,ind,media);
     vlc_playlist_item_t *item = vlc_playlist_Get (playlist,ind);
     int id=vlc_playlist_item_GetId(item);
-    char *s=NULL; s=itoaF(id,s,10);
+    char *s=NULL; s=itoaFunction(id,s,10);
     vlc_playlist_Unlock(playlist);
     char *output = malloc(sizeof(char) * 4096);
     bzero(output, 4096);
@@ -1475,7 +1005,7 @@ char *deleteid(intf_thread_t *intfa, char *arguments)
     //assuming for now only single uri, not folder
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     vlc_playlist_Lock(playlist);
-    int id=atoiF(v.data[0]);
+    int id=atoiFunction(v.data[0]);
     size_t ind=vlc_playlist_IndexOfId(playlist, ind);
     vlc_playlist_RemoveOne (playlist,ind);
     vlc_playlist_Unlock(playlist);
@@ -1685,7 +1215,7 @@ char *move(intf_thread_t *intfa, char *arguments)
     vlc_playlist_Lock(playlist);
     // size_t ind1=vlc_playlist_IndexOfId(playlist, v.data[0]);
     // size_t ind2=vlc_playlist_IndexOfId(playlist, v.data[1]);
-    int bef=atoiF(v.data[0]),aft=atoiF(v.data[1]);
+    int bef=atoiFunction(v.data[0]),aft=atoiFunction(v.data[1]);
     if(v.data[0]>v.data[1])
     {
         aft=v.data[0];  bef=v.data[1];
@@ -1715,7 +1245,7 @@ char *moveid(intf_thread_t *intfa, char *arguments)
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     //add checks to and from within range
     vlc_playlist_Lock(playlist);
-    v.data[0]=atoiF(v.data[0]);v.data[1]=atoiF(v.data[1]);
+    v.data[0]=atoiFunction(v.data[0]);v.data[1]=atoiFunction(v.data[1]);
     size_t ind1=vlc_playlist_IndexOfId(playlist, v.data[0]);
     size_t ind2=vlc_playlist_IndexOfId(playlist, v.data[1]);
     int bef=ind1,aft=ind2;
@@ -1750,7 +1280,7 @@ char *swap(intf_thread_t *intfa, char *arguments)
     vlc_playlist_Lock(playlist);
     // size_t ind1=vlc_playlist_IndexOfId(playlist, v.data[0]);
     // size_t ind2=vlc_playlist_IndexOfId(playlist, v.data[1]);
-    int bef=atoiF(v.data[0]),aft=atoiF(v.data[1]);
+    int bef=atoiFunction(v.data[0]),aft=atoiFunction(v.data[1]);
     if(v.data[0]>v.data[1])
     {
         aft=v.data[0];  bef=v.data[1];
@@ -1780,7 +1310,7 @@ char *swapid(intf_thread_t *intfa, char *arguments)
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     //add checks to and from within range
     vlc_playlist_Lock(playlist);
-    v.data[0]=atoiF(v.data[0]);v.data[1]=atoiF(v.data[1]);// i think error in all these because v.data[0] is of char type
+    v.data[0]=atoiFunction(v.data[0]);v.data[1]=atoiFunction(v.data[1]);// i think error in all these because v.data[0] is of char type
     size_t ind1=vlc_playlist_IndexOfId(playlist, v.data[0]);
     size_t ind2=vlc_playlist_IndexOfId(playlist, v.data[1]);
     int bef=ind1,aft=ind2;
@@ -1803,7 +1333,385 @@ char *swapid(intf_thread_t *intfa, char *arguments)
     destroyVector(&v);
     return (char *)output;
 }
-#pragma region
+
+//database commands
+char *find(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *findadd(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *search(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *searchadd(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *searchaddpl(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *count(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *listall(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+
+    printf("listAll\n");
+    char *returnString=malloc(sizeof(char)*4096);
+    bzero(returnString,4096);
+    vlc_medialibrary_t* p_ml = intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t params = vlc_ml_query_params_create(); vlc_ml_query_params_t* p_params = &params;
+    vlc_ml_media_list_t *p_vlc_ml_media_list_t=vlc_ml_list_audio_media (p_ml, p_params);
+    char *title=NULL;
+    for(int i=0;i<p_vlc_ml_media_list_t->i_nb_items;i++)
+    {
+        vlc_ml_media_t *p_vlc_ml_media_t=&p_vlc_ml_media_list_t->p_items[i];
+        title=p_vlc_ml_media_t->psz_title;
+        strcat(title,"\n");
+        strcat(returnString,title);
+        //release not working
+        //vlc_ml_media_release (p_vlc_ml_media_t);
+    }
+    //vlc_ml_media_list_release(p_vlc_ml_media_list_t);
+    msg_Info(intfa,"%s%s.",title,returnString);
+    destroyVector(&v);
+    return (char*)returnString;
+    
+}
+char *list(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *listallinfo(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+
+//playlist commands
+char *save(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    char *filename=NULL;
+    strcat(filename,"/home/nightwayne/MPD/"); //directory where playlists are saved
+    strcat(filename,v.data[0]);
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Export (playlist, filename, ".xspf");
+    vlc_playlist_Unlock(playlist);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *load(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    vlc_playlist_Unlock(playlist);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *listplaylist(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    for(int i=0;i<vlc_playlist_Count(playlist);i++)
+    {
+        input_item_t* item= vlc_playlist_item_GetMedia(vlc_playlist_Get(playlist,i));
+        strcat(output,item->psz_name);
+        strcat(output,"\n");
+    }
+    strcat(output, "OK\n");
+    vlc_playlist_Unlock(playlist);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *listplaylistinfo(intf_thread_t *intfa, char *arguments) //need to add meta-data, similar to playlistinfo
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    for(int i=0;i<vlc_playlist_Count(playlist);i++)
+    {
+        input_item_t* item= vlc_playlist_item_GetMedia(vlc_playlist_Get(playlist,i));
+        strcat(output,item->psz_name);
+        strcat(output,"\n");
+    }
+    strcat(output, "OK\n");
+    vlc_playlist_Unlock(playlist);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *rm(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *renameF(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistdelete(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    int ind=atoiFunction(v.data[1]);
+    vlc_playlist_RemoveOne (playlist,ind);
+    vlc_playlist_Unlock(playlist);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *playlistmove(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *playlistclear(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    vlc_playlist_Clear(playlist);
+    vlc_playlist_Unlock(playlist);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *playlistadd(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    char* inp=vlc_path2uri(v.data[1],"file");
+    input_item_t *media=input_item_New(inp,"wit");/*dummy, needs to be extracted*/
+    size_t ind=vlc_playlist_Count(playlist);
+    vlc_playlist_InsertOne(playlist,ind,media);
+    vlc_playlist_Unlock(playlist);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *listplaylists(intf_thread_t *intfa, char *arguments) //same problem of parsing files with particular extension - need to study regex for it
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+
+// commands initial
+char *commands(intf_thread_t *intfa, char *arguments){}
+char *not_commands(intf_thread_t *intfa, char *arguments){}
+char *handle_update(intf_thread_t *intfa, char *arguments){}
+
 //other commands
 char *urlhandlers(intf_thread_t *intfa, char *arguments)
 {
@@ -1973,6 +1881,7 @@ char *idle(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+
 //output commands
 char *enableoutput(intf_thread_t *intfa, char *arguments)
 {
@@ -2044,8 +1953,9 @@ char *devices(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
-//tag commands ->volatile changes ->how to add them dynamically without modifying the song(media) file
-char *addtagid(intf_thread_t *intfa, char *arguments)
+
+//client connection handling commands
+char *closeF(intf_thread_t *intfa, char *arguments)
 {
     vect v;
     vlc_vector_init(&v);
@@ -2059,7 +1969,7 @@ char *addtagid(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
-char *cleartagid(intf_thread_t *intfa, char *arguments)
+char *ping(intf_thread_t *intfa, char *arguments)
 {
     vect v;
     vlc_vector_init(&v);
@@ -2073,115 +1983,224 @@ char *cleartagid(intf_thread_t *intfa, char *arguments)
     msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
+char *password(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+char *tagtypes(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+    
+    vlc_vector_clear(&v);
+    vlc_vector_destroy(&v);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "\n");
+    msg_Info(intfa, "%s.", output);
+    return (char *)output;
+}
+
 #pragma endregion
 
-/*Helper Functions*/
-static int string_compare_function(const void *key, const void *arrayElement)
+// Helper Function Implementation
+#pragma region
+/* Implementation of Helper Function */
+// Reverse Character Array (helper function for itoaFunction)
+void reverse(char str[], int length) 
+{ 
+    int start = 0; 
+    int end = length -1; 
+    while (start < end) 
+    { 
+        swap(*(str+start), *(str+end)); 
+        start++; 
+        end--; 
+    } 
+} 
+
+// Integer to String Function 
+char* itoaFunction(int num, char* str, int base) 
+{ 
+    // Initialize result 
+    int i = 0; 
+    bool isNegative = false; 
+  
+    /* Handle 0 explicitely, otherwise empty string is printed for 0 */
+    if (num == 0) 
+    { 
+        str[i++] = '0'; 
+        str[i] = '\0'; 
+        return str; 
+    } 
+  
+    // In standard itoaFunction(), negative numbers are handled only with base 10. Otherwise numbers are considered unsigned. 
+    if (num < 0 && base == 10) 
+    { 
+        isNegative = true; 
+        num = -num; 
+    } 
+  
+    // Process individual digits 
+    while (num != 0) 
+    { 
+        int rem = num % base; 
+        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
+        num = num/base; 
+    } 
+  
+    // If number is negative, append '-' 
+    if (isNegative) 
+        str[i++] = '-'; 
+  
+    str[i] = '\0'; // Append string terminator 
+  
+    // Reverse the string 
+    reverse(str, i); 
+  
+    return str; 
+} 
+
+// String to Integer Function
+int atoiFunction(char* str) 
+{ 
+    // Initialize result 
+    int res = 0; 
+  
+    // Iterate through all characters of input string and update result 
+    for (int i=0;str[i]!='\0';++i) 
+        res = res * 10 + str[i] - '0'; 
+  
+    // Return result
+    return res; 
+}
+
+// VLC Player State Change Registerer
+static void player_on_state_changed(vlc_player_t *player, enum vlc_player_state state, void *data)
+{
+    VLC_UNUSED(player);
+    char const *psz_cmd;
+    switch (state)
+    {
+        case VLC_PLAYER_STATE_STOPPING: psz_cmd = "stop";
+        break;
+        case VLC_PLAYER_STATE_STOPPED: psz_cmd = "stop";
+        break;
+        case VLC_PLAYER_STATE_PLAYING: psz_cmd = "play";
+        break;
+        case VLC_PLAYER_STATE_PAUSED: psz_cmd = "pause";
+        break;
+        default: psz_cmd = "";
+        break;
+    }
+    intf_thread_t *p_intf = data;
+}
+
+// Compare String (helper function for searchCommand)
+static int stringCompare(const void *key, const void *arrayElement)
 {
     const commandFunc *commandFunc = arrayElement;
     return strcmp(key, commandFunc->command); /*each list item's string binary search*/
 }
-commandFunc *searchCommand(const char *key)
+
+// Command Search Function
+commandFunc* searchCommand(const char *key)
 {
-    return bsearch(key, command_list_array, ARRAY_SIZE(command_list_array), sizeof(*command_list_array), string_compare_function);
+    return bsearch(key, command_list_array, ARRAY_SIZE(command_list_array), sizeof(*command_list_array), stringCompare);
 }
+
+// Remove Leading & Trailing Spaces in Command
 void trim(char *s)
 {
     int i, j;
-
+    //leading space
     for (i = 0; s[i] == ' ' || s[i] == '\t'; i++)
+    {
         ;
-
+    }
     for (j = 0; s[i]; i++)
     {
         s[j++] = s[i];
     }
     s[j] = '\0';
+    //trailing space
     for (i = 0; s[i] != '\0'; i++)
     {
         if (s[i] != ' ' && s[i] != '\t')
+        {
             j = i;
+        }
     }
     s[j + 1] = '\0';
 }
-void parseInput(intf_thread_t *intfa, char *input, char *command, char *argumentsC)
-{ // 3. remove whitespace in left and right ->check
-    char *arg = NULL;
-    //msg_Info(intfa, "%s %ld", input, strlen(input));
+
+// Parsing and Processing Input
+void parseInput(intf_thread_t *intfa, char *input, char *command, char *argument)
+{ 
+    // 1. remove whitespace in left and right
     trim(input);
     //msg_Info(intfa, "%s %ld", input, strlen(input));
 
-    // 4. separate command and argument using whitespace
-    // msg_Info(intfa, "%p %p %p %p", input, command, argumentsC, arg);
-    // //msg_Info(intfa,"arg:%s size:%ld",arg, strlen(arg));
-    // msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
-
+    // 2. copying argument because strchr returns new pointer
+    char *arg = NULL;
     arg = strchr(input, ' ');
     int i = 0;
     while (arg[i] != '\0')
     {
-        argumentsC[i] = arg[i];
+        argument[i] = arg[i];
         i++;
     }
-    argumentsC[i] = '\0';
+    argument[i] = '\0';
 
-    // msg_Info(intfa, "%p %p %p %p", input, command, argumentsC, arg);
-    // msg_Info(intfa, "arg:%s size:%ld", arg, strlen(arg));
-    // msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
-
-    if (argumentsC != NULL)
+    // 3. separate command and argument using whitespace
+    if (argument != NULL)
     {
+        //msg_Info(intfa, "argument present");
         int s = strlen(input);
-        strncat(command, input, s - strlen(argumentsC));
-        //msg_Info(intfa, "yes arg");
-        trim(argumentsC);
+        strncat(command, input, s - strlen(argument));
+        trim(argument);
     }
     else
-        argumentsC = "\0";
-    // 4.5. Check/Debug
-    // msg_Info(intfa, "%p %p %p %p", input, command, argumentsC, arg);
-    // msg_Info(intfa, "arg:%s size:%ld", arg, strlen(arg));
-    // msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
-
-    // 5. check for lowercase - here I am explicity converting to small string
+    {
+        argument = ""; //empty not null
+    }
+        
+    // 4. check for lowercase - here I am explicity converting to small string
     for (int i = 0; command[i]; i++)
     {
         command[i] = tolower(command[i]);
     }
-    // msg_Info(intfa, "%p %p %p %p", input, command, argumentsC, arg);
-    // msg_Info(intfa, "arg:%s size:%ld", arg, strlen(arg));
-    // msg_Info(intfa, "input:%s.\ninputSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argumentsC, strlen(argumentsC));
+
+    // 5. remove " " from arguments if present
+
+    // 6. Function Check
+    // msg_Info(intfa, "%p %p %p %p", input, command, argument, arg);
+    // msg_Info(intfa, "arg:%s.\nargsize:%ld.\n", arg, strlen(arg));
+    // msg_Info(intfa, "command:%s.\ncommandSize:%ld.\narguments:%s.\nargumentsSize:%ld.\n", command, strlen(command), argument, strlen(argument));
 }
-// void playTest(intf_thread_t *intfa, input_item_t *media)
-// {
-//     vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-//     vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-//     vlc_player_Lock(player);
-//     msg_Info(intfa,"play1");
-//     vlc_playlist_item_t *pp=vlc_playlist_Get(playlist,1);
-//     input_item_t *media1=vlc_playlist_item_GetMedia(pp);
-//     int i=vlc_player_SetCurrentMedia(player, media1);
-//     msg_Info(intfa,"6 %d",i);
-//     i=vlc_player_Start(player);
-//     msg_Info(intfa,"play %d",i);
-//     msg_Info(intfa,"play2");
-//     vlc_player_Unlock(player);
-// }
-// void pauseTest(intf_thread_t *intfa)
-// {
-//     vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-//     vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-//     vlc_player_Lock(player);
-//     vlc_player_Stop(player);
-//     vlc_player_Unlock(player);
-// }
+
+// Extracting Arguments from Command
 void getArg(intf_thread_t *intfa, char* str,vect* v)
 {
+    // Handle No Arguments Case
     if(strlen(str)==0)
     {
         vlc_vector_clear(v);
         return;
     }
+    
+    // Remove Multiple Consecutive Whitespaces
     int i, x;
     for(i=x=0; str[i]; ++i)
     {
@@ -2219,20 +2238,29 @@ void getArg(intf_thread_t *intfa, char* str,vect* v)
             token = strtok(NULL,s);
         }
     }
+    
+    // Function Check
     // msg_Info(intfa,"%d",v.size);/**/
     // for(int i=0;i<v.size;i++)
     // msg_Info(intfa,"%s",v.data[i]);
 }
+
+// Clear and Destroy Argument Vector
 void destroyVector(vect *v)
 {
-    vlc_vector_clear(v);vlc_vector_destroy(v);
+    vlc_vector_clear(v);
+    vlc_vector_destroy(v);
 }
+#pragma endregion
 
-/*Client Handling Thread Function*/
-void *clientHandling(void *threadArg) //Polling + Client Req Handling
+/* VLC Interface Handling Functions*/
+
+// Client Handling Thread Function
+void *clientHandling(void *threadArgument) //Polling + Client Req Handling
 {
+    #pragma region
     // 0. Function Start
-    intf_thread_t *intfa = (intf_thread_t *)threadArg;
+    intf_thread_t *intfa = (intf_thread_t *)threadArgument;
     intf_sys_t *p_sys = intfa->p_sys;
     msg_Info(intfa, "Hello from thread side!");
 
@@ -2252,6 +2280,7 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
         perror("listen");
         exit(EXIT_FAILURE);
     }
+    #pragma endregion
 
     // 3. Event Loop
     bool v = true;
@@ -2280,7 +2309,7 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     FD_SET(client_fd, &currentSockets);
 
                     // 1. return OK connection established
-                    char *output = "OK MPD Version 0.21.25";
+                    char *output = "OK MPD Version 0.21.25";    /*fixme vlc version here*/
                     send(client_fd, output, strlen(output), 0);
                     msg_Info(intfa, "server read: %d\n", client_fd);
                     //v=false;
@@ -2294,7 +2323,7 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     // 1. read operation ->read data of unknown length - ask mentors
                     int n;
                     char *input = malloc(sizeof(char) * 4096), *argumentsC = malloc(sizeof(char) * 2048), *command = malloc(sizeof(char) * 1024);
-                    bzero(input, 4096); bzero(argumentsC, 2048); bzero(command, 1024);
+                    bzero(input, 4096); bzero(argumentsC, 2048); bzero(command, 1024); /* fixme: reduce size */
                     if ((n = read(client_fd, input, 4095)) < 0)
                     {
                         perror("read");
@@ -2302,21 +2331,31 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     }
                     input[strlen(input) - 1] = '\0';
 
-                    // 2. Size 0 input -handled & Parse Input
+                    // 2. Handle Size = 0 Input
                     if (strlen(input) == 0)
                     {
-                        //continue; ->if continued 0 length input, then needs new approach.
-                        //commandFunc *command = searchCommand("list"); //or use "commands"
-                        //char *output = command->commandName(intfa, "arg");
-                        char* output="OK\n";
-                        msg_Info(intfa, "Size0 %s", output);
+                        /* fixme: if continued 0 length input, then needs new approach */
+                        commandFunc *command = searchCommand("commands");
+                        char *output = command->commandName(intfa, "arg");
                         send(client_fd, output, strlen(output), 0);
-                        //free(output);
+                        msg_Info(intfa, "Size0 %s", output);
+                        free(output);
+                        break;
                     }
-                    else
+                    
+                    // 3. Parse Input
                     parseInput(intfa,input,command,argumentsC);
                     
-                    // State Change Management
+                    // 4. Handle Argument is Missing Quotation
+                    if(argumentsC=="\"")
+                    {
+                        msg_Info(intfa,"Argument is Missing Quotation\n");
+                        char* output = "ACK Argument is Missing Quotation";
+                        strcat(output,"\n");
+                        send(client_fd, output, strlen(output), 0);
+                    }
+
+                    // 5. State Change Management
                     vlc_player_t *player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
                     input_item_t *item = NULL;
                     vlc_player_Lock(player);
@@ -2372,26 +2411,38 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
                     // }
                     vlc_player_Unlock(player);
                     
-                    // // 6. search for the command in the array
-                    commandFunc* commandF=searchCommand(input);
+                    // 6. search for the command in the array
+                    commandFunc* commandF=searchCommand(command);
                     if(commandF==NULL)
                     {
-                        //study the ACK.hxx & follow up
-                        msg_Info(intfa,"command not found\n");
-                        send(client_fd, "OK\n", strlen("OK\n"), 0);
-                        //send(client_fd, "ACK command not found\n", strlen("ACK command not found\n"), 0);
-                        FD_CLR(client_fd, &currentSockets); //remove client_fd to current
+                        msg_Info(intfa,"ACK Command Does Not Exist\n");
+                        char* output = "ACK Command Does Not Exist";
+                        strcat(output,command);strcat(output,"\n");
+                        send(client_fd, output, strlen(output), 0);
+                        //FD_CLR(client_fd, &currentSockets);
                     }
                     else
                     {
+                        msg_Info(intfa,"ACK Command Does Exist\n");
                         char* output = commandF->commandName(intfa, argumentsC);
-                        send(client_fd, output, strlen(output), 0);
+                        if(!strcmp(output,"Invalid Argument"))
+                        {
+                            msg_Info(intfa,"Invalid Argument\n");
+                            char* outputArg = "ACK Invalid Argument ";
+                            strcat(outputArg,argumentsC);strcat(outputArg,"\n");
+                            send(client_fd, outputArg, strlen(outputArg), 0);
+                        }
+                        else
+                        {
+                            msg_Info(intfa,"Valid Argument\n");
+                            send(client_fd, output, strlen(output), 0);    
+                        }
                         free(output);
                     }
 
                     // 7. free up dynamically allocated data
                     free(input);    free(command);  free(argumentsC);
-                    FD_CLR(client_fd, &currentSockets); //remove client_fd to current
+                    //FD_CLR(client_fd, &currentSockets); //remove client_fd to current
                 }
             }
         }//for
@@ -2401,7 +2452,7 @@ void *clientHandling(void *threadArg) //Polling + Client Req Handling
     return NULL;
 }
 
-/*Open Module*/
+// Open Module
 static int Open(vlc_object_t *obj)
 {
     // 0. Module Start
@@ -2443,24 +2494,28 @@ static int Open(vlc_object_t *obj)
     if (unlikely(p_sys == NULL))
         return VLC_ENOMEM;
 
+    // 6. VLC MediaLibrary, Playlist, Player, Listner Initialisation
     intf_thread_t *intf = (intf_thread_t *)obj;
     intf->p_sys = p_sys;
     p_sys->server_fd = server_fd;
     p_sys->vlc_medialibrary = vlc_ml_instance_get(obj);
-    p_sys->vlc_playlist = vlc_intf_GetMainPlaylist(intf); /*vlc_intf_GetMainPlaylist(intfa);*/
-    //p_sys->vlc_player = vlc_playlist_GetPlayer(p_sys->vlc_playlist); /*vlc_playlist_GetPlayer(sys->vlc_playlist);*/
+    p_sys->vlc_playlist = vlc_intf_GetMainPlaylist(intf);
+    //p_sys->vlc_player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
     vlc_player_t *player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
 
-    // 6. Client Handling
+    // 7. Client Handling
     int i = 0;
     if ((i = vlc_clone(&intf->p_sys->thread, clientHandling, intf, VLC_THREAD_PRIORITY_LOW)) < 0)
     {
         perror("clone failed");
         exit(EXIT_FAILURE);
     }
+    
+    // 8. Attaching Listners to Player
     static struct vlc_player_cbs const player_cbs =
         {
-            .on_state_changed = player_on_state_changed /*,*/
+            .on_state_changed = player_on_state_changed
+            // , 
             // .on_buffering_changed = player_on_buffering_changed,
             // .on_rate_changed = player_on_rate_changed,
             // .on_position_changed = player_on_position_changed,
@@ -2472,17 +2527,18 @@ static int Open(vlc_object_t *obj)
         vlc_player_Unlock(player);
         goto error;
     }
+    vlc_player_Unlock(player);
     // static struct vlc_player_aout_cbs const player_aout_cbs =
     // {
     //     .on_volume_changed = player_aout_on_volume_changed,
     // };
     // p_sys->player_aout_listener =
     //     vlc_player_aout_AddListener(player, &player_aout_cbs, p_intf);
-    vlc_player_Unlock(player);
+    // vlc_player_Unlock(player);
     // if (!p_sys->player_aout_listener)
     //     goto error;
 
-    // 7. Module End
+    // 9. Module End
     return VLC_SUCCESS;
 error:
     if (p_sys->player_listener)
@@ -2495,7 +2551,7 @@ error:
     return VLC_EGENERIC;
 }
 
-/*Close Module*/
+// Close Module
 static void Close(vlc_object_t *obj)
 {
     // 0. Module Start
@@ -2509,8 +2565,8 @@ static void Close(vlc_object_t *obj)
     vlc_join(intf->p_sys->thread, NULL);
     vlc_player_t *player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
     vlc_player_Lock(player);
-    //vlc_player_aout_RemoveListener(player, p_sys->player_aout_listener);
     vlc_player_RemoveListener(player, p_sys->player_listener);
+    //vlc_player_aout_RemoveListener(player, p_sys->player_aout_listener);
     vlc_player_Unlock(player);
 
     // free(sys->vlc_medialibrary);
@@ -2522,20 +2578,16 @@ static void Close(vlc_object_t *obj)
     msg_Info(intf, "Good bye MPD Server");
 }
 
-/* Module descriptor */
+#pragma region
+// Module Descriptor
 vlc_module_begin()
     set_shortname(N_("MPD"))
     set_description(N_("MPD Control Interface Module"))
     set_capability("interface", 0)
     set_callbacks(Open, Close)
     set_category(CAT_INTERFACE)
-    //add_string("variable", "world", "Target", "Whom to say hello to.", false) //--use case not known til now!
 vlc_module_end()
 
-/*
-I was looking into the related modules, and they seem to use [call-back mechanism on state changes](https://code.videolan.org/gsoc/gsoc2020/arnav-ishaan/vlc/-/blob/mpd/modules/control/rc.c#L1856).
-From what I discussed with my mentor, he told me callbacks and stuffs can be implemented later on, after getting on with the medialibrary and playback stuff. 
-*/
 /*
 msg_Info(intfa,"1");
 vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
@@ -2614,3 +2666,4 @@ static void PlaylistStop(intf_thread_t *intf)
     // sleep(7);
     // pauseTest(intfa);
 */
+#pragma endregion
