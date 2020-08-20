@@ -119,6 +119,7 @@ char *playlistadd(intf_thread_t *intfa, char *arguments);
 char *listplaylists(intf_thread_t *intfa, char *arguments);
 
 //queue commands
+void addRecursively(intf_thread_t *intfa, char *basePath);
 char *add(intf_thread_t *intfa, char *arguments);
 char *addid(intf_thread_t *intfa, char *arguments);
 char *rangeid(intf_thread_t *intfa, char *arguments);
