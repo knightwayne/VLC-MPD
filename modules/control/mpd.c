@@ -2587,86 +2587,78 @@ char *rangeid(intf_thread_t *intfa, char *arguments) //how to decide which porti
 }
 char *shuffle(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    //assuming for now only single uri, not folder
+     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     vlc_playlist_Lock(playlist);
-    vlc_playlist_Shuffle(playlist);
+    vlc_playlist_Shuffle(playlist); //this should ideally free resources of playlist internally too
     vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
+    
     strcat(output, "OK\n");
-    msg_Info(intfa, "Shuffle %s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    //msg_Info(intfa, "Clear %s.", output);
+    
+    destroyVector(&v); return (char *)output;
 }
 char *swap(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
     
-    //assuming for now only single uri, not folder
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    //add checks to and from within range
-    vlc_playlist_Lock(playlist);
-    // size_t ind1=vlc_playlist_IndexOfId(playlist, v.data[0]);
-    // size_t ind2=vlc_playlist_IndexOfId(playlist, v.data[1]);
-    int bef=atoiFunction(v.data[0]),aft=atoiFunction(v.data[1]);
-    if(v.data[0]>v.data[1])
+    if(v.size==2)
     {
-        aft=v.data[0];  bef=v.data[1];
+        int bef=atoi(v.data[0]); int aft=atoi(v.data[1]); /*fixme: bef and aft range between 0 and size-1*/
+        if(bef>aft)
+        {
+            int temp=bef; bef=aft; aft=temp;
+        }
+        vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+        vlc_playlist_Lock(playlist);
+        vlc_playlist_MoveOne(playlist,bef,aft-1);
+        vlc_playlist_MoveOne(playlist,aft,bef); 
+        vlc_playlist_Unlock(playlist);
+
+        strcat(output, "OK\n");
+        //msg_Info(intfa, "Clear %s.", output);
     }
-    vlc_playlist_item_t *item1=vlc_playlist_Get(playlist, bef);
-    vlc_playlist_RemoveOne(playlist,bef);
-    vlc_playlist_item_t *item2=vlc_playlist_Get(playlist, aft-1);
-    vlc_playlist_RemoveOne(playlist,aft);
-    vlc_playlist_InsertOne (playlist,bef,item2);
-    vlc_playlist_InsertOne (playlist,aft,item1);
-    //can also use temp elem swap here - think that would be better.
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "DeleteId %s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    else
+    {
+        strcat(output,"Error: Invalid Type/Number of Arguments.");
+        //msg_Info(intfa,Error: Invalid Type/Number of Arguments.");
+    }
+
+    destroyVector(&v); return (char *)output;
 }
 char *swapid(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
     
-    //assuming for now only single uri, not folder
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    //add checks to and from within range
-    vlc_playlist_Lock(playlist);
-    v.data[0]=atoiFunction(v.data[0]);v.data[1]=atoiFunction(v.data[1]);// i think error in all these because v.data[0] is of char type
-    size_t ind1=vlc_playlist_IndexOfId(playlist, v.data[0]);
-    size_t ind2=vlc_playlist_IndexOfId(playlist, v.data[1]);
-    int bef=ind1,aft=ind2;
-    if(v.data[0]>v.data[1])
+    if(v.size==2)
     {
-        aft=v.data[0];  bef=v.data[1];
+        int id1=atoi(v.data[0]); int id2=atoi(v.data[1]); /*fixme: bef and aft range between 0 and size-1*/
+        
+        vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+        vlc_playlist_Lock(playlist);
+        int bef=vlc_playlist_IndexOfId(playlist,id1); int aft=vlc_playlist_IndexOfId(playlist,id2);
+        if(bef>aft)
+        {
+            int temp=bef; bef=aft; aft=temp;
+        }
+        vlc_playlist_MoveOne(playlist,bef,aft-1);
+        vlc_playlist_MoveOne(playlist,aft,bef);   
+        vlc_playlist_Unlock(playlist);
+
+        strcat(output, "OK\n");
+        //msg_Info(intfa, "Clear %s.", output);
     }
-    vlc_playlist_item_t *item1=vlc_playlist_Get(playlist, bef);
-    vlc_playlist_RemoveOne(playlist,bef);
-    vlc_playlist_item_t *item2=vlc_playlist_Get(playlist, aft-1);
-    vlc_playlist_RemoveOne(playlist,aft);
-    vlc_playlist_InsertOne (playlist,bef,item2);
-    vlc_playlist_InsertOne (playlist,aft,item1);
-    //can also use temp elem swap here - think that would be better.
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "DeleteId %s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    else
+    {
+        strcat(output,"Error: Invalid Type/Number of Arguments.");
+        //msg_Info(intfa,Error: Invalid Type/Number of Arguments.");
+    }
+
+    destroyVector(&v); return (char *)output;
 }
 //tag commands ->volatile changes ->how to add them dynamically without modifying the song(media) file
 char *addtagid(intf_thread_t *intfa, char *arguments)
@@ -3133,7 +3125,6 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
                     {
                         msg_Info(intfa,"ACK Command Does Exist\n");
                         char* output = commandF->commandName(intfa, argumentsC);
-
                         vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
                         vlc_playlist_Lock(playlist);
                         vlc_playlist_item_t* playlistItem;
