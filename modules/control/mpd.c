@@ -76,7 +76,8 @@ void destroyVector(vect* v);
 void *clientHandling(void *arg);
 static void player_on_state_changed(vlc_player_t *player, enum vlc_player_state state, void *data);
 #pragma endregion
-/* MPD Interaction Commands Not Available */
+
+/* MPD Interaction Commands Available> */
 #pragma region
 /* Command Array */
 const commandFunc command_list_array[] = {
@@ -187,350 +188,15 @@ const commandFunc command_list_array[] = {
     {"urlhandlers", urlhandlers},
     {"volume", volume}};
 
-//file commands - reading music file ??
-char *read_comments(intf_thread_t *intfa, char *arguments)
+//1. Query MPD Status
+char *clearerror(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *album_art(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *read_picture(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-//fingerprint commands
-char *getfingerprint(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-//Message c2c communication
-char *subscribe(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *unsubscribe(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *channels(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *read_messages(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *send_message(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-//neighbour commands
-char *listneighbors(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-//partition commands
-char *partition(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listpartitions(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *newpartition(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *delpartition(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *moveoutput(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-//sticker commands
-char *sticker(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-//storage commands
-char *listmounts(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *mount(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *unmount(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-/* MPD Interaction Commands Available> */
-//2. Playback Options and Controlling Playback
-char *play(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    int pos=atoi(v.data[0]);
-    vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,pos);
-    input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
-    vlc_player_SetCurrentMedia(player, item);
-    vlc_player_Start(player);
-    //vlc_player_Stop(player);
-    vlc_player_Unlock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "Play Pos%s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *playid(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    size_t ind=vlc_playlist_IndexOfId(playlist, v.data[0]);
-    vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,ind);
-    input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
-    vlc_player_SetCurrentMedia(player, item);
-    vlc_player_Start(player);
-    vlc_player_Unlock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "Play Id%s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *stop(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    vlc_player_Stop(player);
-    vlc_player_Unlock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "Play Pos%s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *currentsong(intf_thread_t *intfa, char *arguments)
 {
@@ -552,23 +218,14 @@ char *currentsong(intf_thread_t *intfa, char *arguments)
     destroyVector(&v);
     return (char *)output;
 }
-char *pauseF(intf_thread_t *intfa, char *arguments)
+char *idle(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    //add pause argument handling 0 and 1;
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    vlc_player_Pause(player);
-    vlc_player_Unlock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "Play Pos%s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *status(intf_thread_t *intfa, char *arguments) //need to look at all state changes and report then
 {
@@ -581,65 +238,26 @@ char *status(intf_thread_t *intfa, char *arguments) //need to look at all state 
     destroyVector(&v);
     return (char *)output;
 }
-char *next(intf_thread_t *intfa, char *arguments)
+char *stats(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    if(!vlc_playlist_HasNext(playlist))
-    {
-        strcat(output, "ACK end of playlist\n");
-    }
-    vlc_playlist_Next(playlist);
-    size_t ind=vlc_playlist_GetCurrentIndex(playlist);
-    vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,ind);
-    input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
-    if(vlc_player_IsStarted(player))
-    vlc_player_Stop(player);
-    
-    vlc_player_SetCurrentMedia(player, item);
-    vlc_player_Start(player);
-    vlc_player_Unlock(player);
     strcat(output, "OK\n");
-    msg_Info(intfa, "Next%s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
-char *previous(intf_thread_t *intfa, char *arguments)
+#pragma endregion
+
+//2. Playback Options
+char *consume(intf_thread_t *intfa, char *arguments)//how to stop playback after completing song 
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    if(!vlc_playlist_HasPrev(playlist))
-    {
-        strcat(output, "ACK start of playlist\n");
-    }
-    vlc_playlist_Prev(playlist);
-    size_t ind=vlc_playlist_GetCurrentIndex(playlist);
-    vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,ind);
-    input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
-    if(vlc_player_IsStarted(player))
-    vlc_player_Stop(player);
-    
-    vlc_player_SetCurrentMedia(player, item);
-    vlc_player_Start(player);
-    vlc_player_Unlock(player);
     strcat(output, "OK\n");
-    msg_Info(intfa, "Next%s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *repeat(intf_thread_t *intfa, char *arguments)
 {
@@ -668,34 +286,6 @@ char *repeat(intf_thread_t *intfa, char *arguments)
     vlc_player_Unlock(player);
     msg_Info(intfa, "Play Pos%s.", output);
     destroyVector(&v);
-    return (char *)output;
-}
-char *single(intf_thread_t *intfa, char *arguments) //how to stop playback after completing song
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *consume(intf_thread_t *intfa, char *arguments)//how to stop playback after completing song 
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
     return (char *)output;
 }
 char *randomF(intf_thread_t *intfa, char *arguments)
@@ -727,847 +317,400 @@ char *randomF(intf_thread_t *intfa, char *arguments)
     destroyVector(&v);
     return (char *)output;
 }
-char *clearerror(intf_thread_t *intfa, char *arguments)
+char *single(intf_thread_t *intfa, char *arguments) //how to stop playback after completing song
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *seek(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    vlc_playlist_item_t *playlistItem=vlc_playlist_Get(playlist,v.data[0]);
-    input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
-    vlc_tick_t t=atoiFunction(v.data[1]);
-    enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
-    enum vlc_player_whence whence=VLC_PLAYER_WHENCE_ABSOLUTE;
-    vlc_player_SetCurrentMedia(player, item);
-    vlc_player_SeekByTime (player,t,speed,whence);
-    vlc_player_Start(player);
-    vlc_player_Unlock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
     strcat(output, "OK\n");
-    msg_Info(intfa, "Seek Pos%s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *seekid(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    size_t ind=vlc_playlist_IndexOfId(playlist, v.data[0]);
-    vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,ind);
-    input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
-    vlc_tick_t t=atoiFunction(v.data[1]);
-    enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
-    enum vlc_player_whence whence=VLC_PLAYER_WHENCE_ABSOLUTE;
-    vlc_player_SetCurrentMedia(player, item);
-    vlc_player_SeekByTime (player,t,speed,whence);
-    vlc_player_Start(player);
-    vlc_player_Unlock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Seek ID%s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *seekcur(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    vlc_tick_t t=atoiFunction(v.data[1]);
-    enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
-    enum vlc_player_whence whence=VLC_PLAYER_WHENCE_ABSOLUTE;
-    if(vlc_player_IsStarted(player))
-    vlc_player_Stop(player);
-    vlc_player_SeekByTime (player,t,speed,whence);
-    vlc_player_Start(player);
-    vlc_player_Unlock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Seek Pos%s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-//not available in VLC as per my knowledge
-char *crossfade(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *mixrampdb(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *mixrampdelay(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *replay_gain_mode(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *replay_gain_status(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-//Database commands
-char *find(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *findadd(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *search(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *searchadd(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *searchaddpl(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *count(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listall(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-
-    printf("listAll\n");
-    char *returnString=malloc(sizeof(char)*4096);
-    bzero(returnString,4096);
-    vlc_medialibrary_t* p_ml = intfa->p_sys->vlc_medialibrary;
-    vlc_ml_query_params_t params = vlc_ml_query_params_create(); vlc_ml_query_params_t* p_params = &params;
-    vlc_ml_media_list_t *p_vlc_ml_media_list_t=vlc_ml_list_audio_media (p_ml, p_params);
-    char *title=NULL;
-    for(int i=0;i<p_vlc_ml_media_list_t->i_nb_items;i++)
-    {
-        vlc_ml_media_t *p_vlc_ml_media_t=&p_vlc_ml_media_list_t->p_items[i];
-        title=p_vlc_ml_media_t->psz_title;
-        strcat(title,"\n");
-        strcat(returnString,title);
-        //release not working
-        //vlc_ml_media_release (p_vlc_ml_media_t);
-    }
-    //vlc_ml_media_list_release(p_vlc_ml_media_list_t);
-    msg_Info(intfa,"%s%s.",title,returnString);
-    destroyVector(&v);
-    return (char*)returnString;
-    
-}
-char *list(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listallinfo(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-//Playlist commands
-char *save(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    char *filename=NULL;
-    strcat(filename,"/home/nightwayne/MPD/"); //directory where playlists are saved
-    strcat(filename,v.data[0]);
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Export (playlist, filename, ".xspf");
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *load(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *listplaylist(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    for(int i=0;i<vlc_playlist_Count(playlist);i++)
-    {
-        input_item_t* item= vlc_playlist_item_GetMedia(vlc_playlist_Get(playlist,i));
-        strcat(output,item->psz_name);
-        strcat(output,"\n");
-    }
-    strcat(output, "OK\n");
-    vlc_playlist_Unlock(playlist);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *listplaylistinfo(intf_thread_t *intfa, char *arguments) //need to add meta-data, similar to playlistinfo
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    for(int i=0;i<vlc_playlist_Count(playlist);i++)
-    {
-        input_item_t* item= vlc_playlist_item_GetMedia(vlc_playlist_Get(playlist,i));
-        strcat(output,item->psz_name);
-        strcat(output,"\n");
-    }
-    strcat(output, "OK\n");
-    vlc_playlist_Unlock(playlist);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *rm(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *renameF(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistdelete(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    int ind=atoiFunction(v.data[1]);
-    vlc_playlist_RemoveOne (playlist,ind);
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *playlistmove(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *playlistclear(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    vlc_playlist_Clear(playlist);
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *playlistadd(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
-    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    char* inp=vlc_path2uri(v.data[1],"file");
-    input_item_t *media=input_item_New(inp,"wit");/*dummy, needs to be extracted*/
-    size_t ind=vlc_playlist_Count(playlist);
-    vlc_playlist_InsertOne(playlist,ind,media);
-    vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *listplaylists(intf_thread_t *intfa, char *arguments) //same problem of parsing files with particular extension - need to study regex for it
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-
-// commands initial
-char *commands(intf_thread_t *intfa, char *arguments){}
-char *not_commands(intf_thread_t *intfa, char *arguments){}
-char *handle_update(intf_thread_t *intfa, char *arguments){}
-
-//other commands
-char *urlhandlers(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *decoders(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *kill(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *listfiles(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *lsinfo(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *update(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *rescan(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *setvol(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *volume(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
-char *stats(intf_thread_t *intfa, char *arguments)
+// Features Not Available in VLC
+char *crossfade(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
-char *config(intf_thread_t *intfa, char *arguments)
+char *mixrampdb(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
-char *idle(intf_thread_t *intfa, char *arguments)
+char *mixrampdelay(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *replay_gain_mode(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *replay_gain_status(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 
-//output commands
-char *enableoutput(intf_thread_t *intfa, char *arguments)
+//3. Controlling Playback
+char *play(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512);bzero(output, 512);
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    int pos=atoi(v.data[0]); /*fixme: if no argument*/
+
+    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    //vlc_player_Lock(player);
+    size_t size=vlc_playlist_Count(playlist);
+    if((pos<size)&&(pos>-1)) //Valid Positions
+    {
+        vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,pos);
+        input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
+        vlc_player_SetCurrentMedia(player, item);
+        vlc_player_Start(player);
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else //Invalid Positions
+    {
+        strcat(output,"Error: Bad Position/Index.");
+        //msg_Info(intfa,"Error: Bad Position/Index.");
+    }
+    //vlc_player_Unlock(player);
+    vlc_playlist_Unlock(playlist);
+
+    destroyVector(&v); return (char *)output;
 }
-char *disableoutput(intf_thread_t *intfa, char *arguments)
+char *playid(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512);bzero(output, 512);
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    int id=atoi(v.data[0]); /*fixme: if no argument*/
+
+    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    //vlc_player_Lock(player);
+    int pos=vlc_playlist_IndexOfId(playlist, id);
+    if(pos!=-1) //ID Exists
+    {
+        vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,pos);
+        input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
+        vlc_player_SetCurrentMedia(player, item);
+        vlc_player_Start(player);
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else //Invalid Positions
+    {
+        strcat(output,"Error: Bad Position/Index.");
+        //msg_Info(intfa,"Error: Bad Position/Index.");
+    }
+    //vlc_player_Unlock(player);
+    vlc_playlist_Unlock(playlist);
+
+    destroyVector(&v); return (char *)output;
 }
-char *toggleoutput(intf_thread_t *intfa, char *arguments)
+char *pauseF(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512);bzero(output, 512);
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    int pause=atoi(v.data[0]); /*fixme: if no argument*/
+
+    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    //vlc_player_Lock(player);
+
+    if(pause==1) //ID Exists
+    {
+        vlc_player_Pause(player);
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else if(pause==0)//Invalid Positions
+    {
+         vlc_player_Resume(player);
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+
+        // strcat(output,"Error: Already Paused.");
+        //msg_Info(intfa,"Error: Bad Position/Index.");
+    }
+    else //Invalid Positions
+    {
+        strcat(output,"Error: Invalid Argument.");
+        //msg_Info(intfa,"Error: Bad Position/Index.");
+    }
+    //vlc_player_Unlock(player);
+    vlc_playlist_Unlock(playlist);
+
+    destroyVector(&v); return (char *)output;
 }
-char *outputset(intf_thread_t *intfa, char *arguments)
+char *stop(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    vlc_player_Stop(player);
+    vlc_playlist_Unlock(playlist);
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    
+    destroyVector(&v); return (char *)output;
 }
-char *devices(intf_thread_t *intfa, char *arguments)
+char *next(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+
+    if(!vlc_playlist_HasNext(playlist))
+    {
+        strcat(output, "Error:End of playlist\n");
+        //msg_Info(intfa, "Clear %s.", output);
+    }
+    else
+    {
+        vlc_playlist_Next(playlist);
+        size_t pos=vlc_playlist_GetCurrentIndex(playlist);
+        vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,pos);
+        input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
+        
+        if(vlc_player_IsStarted(player))
+        vlc_player_Stop(player);
+        
+        vlc_player_SetCurrentMedia(player, item);
+        vlc_player_Start(player);   
+        
+        strcat(output, "OK\n");
+        //msg_Info(intfa, "Clear %s.", output); 
+    }
+    vlc_playlist_Unlock(playlist);
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    destroyVector(&v); return (char *)output;
+}
+char *previous(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+
+    if(!vlc_playlist_HasPrev(playlist))
+    {
+        strcat(output, "Error:Start of playlist\n");
+        //msg_Info(intfa, "Clear %s.", output);
+    }
+    else
+    {
+        vlc_playlist_Prev(playlist);
+        size_t pos=vlc_playlist_GetCurrentIndex(playlist);
+        vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,pos);
+        input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
+        
+        if(vlc_player_IsStarted(player))
+        vlc_player_Stop(player);
+        
+        vlc_player_SetCurrentMedia(player, item);
+        vlc_player_Start(player);   
+        
+        strcat(output, "OK\n");
+        //msg_Info(intfa, "Clear %s.", output); 
+    }
+    vlc_playlist_Unlock(playlist);
+    
+    destroyVector(&v); return (char *)output;
+}
+char *seek(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    int pos=atoi(v.data[0]); int t=atoi(v.data[1]);
+
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    size_t size=vlc_playlist_Count(playlist);
+    if((pos<size)&&(pos>-1)) //Valid Positions
+    {
+        vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,pos);
+        input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
+        vlc_tick_t curr=VLC_TICK_FROM_SEC(t);
+        // int z=SEC_FROM_VLC_TICK(curr); msg_Info(intfa,"%d",z);
+        enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
+        enum vlc_player_whence whence=VLC_PLAYER_WHENCE_ABSOLUTE;
+        // if(vlc_player_IsStarted(player))
+        // vlc_player_Stop(player);
+
+        vlc_player_SetCurrentMedia(player, item);
+        vlc_player_SeekByTime(player,curr,speed,whence);
+        vlc_player_Start(player);
+
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else //Invalid Positions
+    {
+        strcat(output,"Error: Bad Position/Index.");
+        //msg_Info(intfa,"Error: Bad Position/Index.");
+    }
+    vlc_playlist_Unlock(playlist);
+
+    destroyVector(&v); return (char *)output;
+}
+char *seekid(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    int id=atoi(v.data[0]); int t=atoi(v.data[1]);
+
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    int pos=vlc_playlist_IndexOfId(playlist, id);
+    size_t size=vlc_playlist_Count(playlist);
+    if(pos!=-1) //Valid Positions
+    {
+        vlc_playlist_item_t *playlistItem= vlc_playlist_Get(playlist,pos);
+        input_item_t *item=vlc_playlist_item_GetMedia (playlistItem);
+        vlc_tick_t curr=VLC_TICK_FROM_SEC(t);
+        // int z=SEC_FROM_VLC_TICK(curr); msg_Info(intfa,"%d",z);
+        enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
+        enum vlc_player_whence whence=VLC_PLAYER_WHENCE_ABSOLUTE;
+        // if(vlc_player_IsStarted(player))
+        // vlc_player_Stop(player);
+
+        vlc_player_SetCurrentMedia(player, item);
+        vlc_player_SeekByTime(player,curr,speed,whence);
+        vlc_player_Start(player);
+
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else //Invalid Positions
+    {
+        strcat(output,"Error: Bad Position/Index.");
+        //msg_Info(intfa,"Error: Bad Position/Index.");
+    }
+    vlc_playlist_Unlock(playlist);
+
+    destroyVector(&v); return (char *)output;
+}
+char *seekcur(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    int t; bool relative=false; //again invalid arguments //check validity of arguments
+    if(v.data[0][0]=='+')
+    {
+        char* str=v.data[0];str++;
+        t=atoi(str);
+        relative=true;
+    }
+    else if(v.data[0][0]=='-')
+    {
+        char* str=v.data[0];str++;
+        t=atoi(str); t=t*(-1);
+        relative=true;
+    }
+    else
+    {
+        t=atoi(v.data[0]);
+    }
+    msg_Info(intfa,"%d",t);
+
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    if(relative)
+    {
+        vlc_tick_t curr=VLC_TICK_FROM_SEC(t);
+        enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
+        enum vlc_player_whence whence=VLC_PLAYER_WHENCE_RELATIVE;
+        if(vlc_player_IsStarted(player))
+        vlc_player_Pause(player);
+        vlc_player_SeekByTime (player,curr,speed,whence);
+        vlc_player_Resume(player);
+    }
+    else
+    {
+        vlc_tick_t curr=VLC_TICK_FROM_SEC(t);
+        enum vlc_player_seek_speed speed=VLC_PLAYER_SEEK_FAST;
+        enum vlc_player_whence whence=VLC_PLAYER_WHENCE_ABSOLUTE;
+        if(vlc_player_IsStarted(player))
+        vlc_player_Pause(player);
+        vlc_player_SeekByTime (player,curr,speed,whence);
+        vlc_player_Resume(player);
+    }
+    vlc_playlist_Unlock(playlist);
+
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 
-//client connection handling commands
-char *closeF(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *ping(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *password(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-char *tagtypes(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
-}
-#pragma endregion
-
-//queue commands
+//4. Queue
 void addRecursively(intf_thread_t *intfa, char *basePath)
 {
     char path[1000]; struct dirent *dp; DIR *dir = opendir(basePath);
@@ -2489,101 +1632,66 @@ char *playlistid(intf_thread_t *intfa, char *arguments)
 }
 char *playlistfind(intf_thread_t *intfa, char *arguments) //Search Regex
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *playlistsearch(intf_thread_t *intfa, char *arguments) //Search Regex
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *plchanges(intf_thread_t *intfa, char *arguments) //Playlist Version Not Stored
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *plchangesposid(intf_thread_t *intfa, char *arguments) //Playlist Version Not Stored
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *prio(intf_thread_t *intfa, char *arguments) //How to decide Prio
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *prioid(intf_thread_t *intfa, char *arguments) //How to decide Prio
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *rangeid(intf_thread_t *intfa, char *arguments) //how to decide which portion of songs to play before-hand?
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *shuffle(intf_thread_t *intfa, char *arguments)
 {
@@ -2663,36 +1771,693 @@ char *swapid(intf_thread_t *intfa, char *arguments)
 //tag commands ->volatile changes ->how to add them dynamically without modifying the song(media) file
 char *addtagid(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
-    return (char *)output;
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
 }
 char *cleartagid(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+#pragma region
+//5. Stored Playlists
+char *listplaylist(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    for(int i=0;i<vlc_playlist_Count(playlist);i++)
+    {
+        input_item_t* item= vlc_playlist_item_GetMedia(vlc_playlist_Get(playlist,i));
+        strcat(output,item->psz_name);
+        strcat(output,"\n");
+    }
+    strcat(output, "OK\n");
+    vlc_playlist_Unlock(playlist);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *listplaylistinfo(intf_thread_t *intfa, char *arguments) //need to add meta-data, similar to playlistinfo
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    for(int i=0;i<vlc_playlist_Count(playlist);i++)
+    {
+        input_item_t* item= vlc_playlist_item_GetMedia(vlc_playlist_Get(playlist,i));
+        strcat(output,item->psz_name);
+        strcat(output,"\n");
+    }
+    strcat(output, "OK\n");
+    vlc_playlist_Unlock(playlist);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *listplaylists(intf_thread_t *intfa, char *arguments) //same problem of parsing files with particular extension - need to study regex for it
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+char *save(intf_thread_t *intfa, char *arguments)
 {
     vect v;
     vlc_vector_init(&v);
     getArg(intfa,arguments,&v);
     
-    vlc_vector_clear(&v);
-    vlc_vector_destroy(&v);
+    char *filename=NULL;
+    strcat(filename,"/home/nightwayne/MPD/"); //directory where playlists are saved
+    strcat(filename,v.data[0]);
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Export (playlist, filename, ".xspf");
+    vlc_playlist_Unlock(playlist);
     char *output = malloc(sizeof(char) * 4096);
     bzero(output, 4096);
-    strcat(output, "\n");
-    msg_Info(intfa, "%s.", output);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
     return (char *)output;
 }
+char *load(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    vlc_playlist_Unlock(playlist);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *rm(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *renameF(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
 
-// Helper Function Implementation
-#pragma region
+char *playlistadd(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    char* inp=vlc_path2uri(v.data[1],"file");
+    input_item_t *media=input_item_New(inp,"wit");/*dummy, needs to be extracted*/
+    size_t ind=vlc_playlist_Count(playlist);
+    vlc_playlist_InsertOne(playlist,ind,media);
+    vlc_playlist_Unlock(playlist);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *playlistclear(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    vlc_playlist_Clear(playlist);
+    vlc_playlist_Unlock(playlist);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *playlistdelete(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);   
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    vlc_playlist_Clear(playlist);
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
+    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
+    //need to test it, if media-type=playlist can be added or not;
+    vlc_playlist_InsertOne (playlist,0,item);
+    int ind=atoiFunction(v.data[1]);
+    vlc_playlist_RemoveOne (playlist,ind);
+    vlc_playlist_Unlock(playlist);
+    char *output = malloc(sizeof(char) * 4096);
+    bzero(output, 4096);
+    strcat(output, "OK\n");
+    msg_Info(intfa, "Save playlist %s.", output);
+    destroyVector(&v);
+    return (char *)output;
+}
+char *playlistmove(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+//6. Music Database
+char *count(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *find(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *findadd(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *list(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *listall(intf_thread_t *intfa, char *arguments)
+{
+    vect v;
+    vlc_vector_init(&v);
+    getArg(intfa,arguments,&v);
+
+    printf("listAll\n");
+    char *returnString=malloc(sizeof(char)*4096);
+    bzero(returnString,4096);
+    vlc_medialibrary_t* p_ml = intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t params = vlc_ml_query_params_create(); vlc_ml_query_params_t* p_params = &params;
+    vlc_ml_media_list_t *p_vlc_ml_media_list_t=vlc_ml_list_audio_media (p_ml, p_params);
+    char *title=NULL;
+    for(int i=0;i<p_vlc_ml_media_list_t->i_nb_items;i++)
+    {
+        vlc_ml_media_t *p_vlc_ml_media_t=&p_vlc_ml_media_list_t->p_items[i];
+        title=p_vlc_ml_media_t->psz_title;
+        strcat(title,"\n");
+        strcat(returnString,title);
+        //release not working
+        //vlc_ml_media_release (p_vlc_ml_media_t);
+    }
+    //vlc_ml_media_list_release(p_vlc_ml_media_list_t);
+    msg_Info(intfa,"%s%s.",title,returnString);
+    destroyVector(&v);
+    return (char*)returnString;
+    
+}
+char *listallinfo(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *listfiles(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *lsinfo(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *search(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *searchadd(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *searchaddpl(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *update(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *rescan(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+//?
+char *handle_update(intf_thread_t *intfa, char *arguments)
+{
+    //code
+}
+char *album_art(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *getfingerprint(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *read_comments(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *read_picture(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+//7. Mounts & Neighbours
+char *mount(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *unmount(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *listmounts(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *listneighbors(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+//8. Sticker
+char *sticker(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+//9. Connection Settings
+char *closeF(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *kill(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *password(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *ping(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *tagtypes(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+//10. Partition commands
+char *partition(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *listpartitions(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *newpartition(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *delpartition(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *moveoutput(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+//11. Audio Output Devices
+char *enableoutput(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *disableoutput(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *toggleoutput(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *devices(intf_thread_t *intfa, char *arguments)//outputs
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *outputset(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+//12. Reflections
+char *config(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *commands(intf_thread_t *intfa, char *arguments)
+{
+    //code
+}
+char *not_commands(intf_thread_t *intfa, char *arguments)
+{
+    //code
+}
+char *urlhandlers(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *decoders(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+
+//13. Client to Client Connections
+char *subscribe(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *unsubscribe(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *channels(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *read_messages(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+char *send_message(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    strcat(output, "OK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    destroyVector(&v); return (char *)output;
+}
+#pragma endregion
+
 /* Implementation of Helper Function */
+#pragma region
 // Reverse Character Array (helper function for itoaFunction)
 void reverse(char str[], int length) 
 { 
@@ -2991,7 +2756,6 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
             perror("select");
             exit(EXIT_FAILURE);
         }
-
         for (int i = 0; i < FD_SETSIZE; i++)
         {
             if (FD_ISSET(i, &readySockets))
