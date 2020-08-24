@@ -250,98 +250,187 @@ char *stats(intf_thread_t *intfa, char *arguments)
 #pragma endregion
 
 //2. Playback Options
-char *consume(intf_thread_t *intfa, char *arguments)//how to stop playback after completing song 
+char *consume(intf_thread_t *intfa, char *arguments) 
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    int state=atoi(v.data[0]);
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    if(state==1)
+    {
+        enum vlc_playlist_playback_repeat mode=VLC_PLAYLIST_PLAYBACK_REPEAT_NONE;
+        vlc_playlist_SetPlaybackRepeat (playlist, mode);
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else if(state==0)
+    {
+        enum vlc_playlist_playback_repeat mode=VLC_PLAYLIST_PLAYBACK_REPEAT_ALL;
+        vlc_playlist_SetPlaybackRepeat (playlist, mode);
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else
+    {
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    vlc_playlist_Unlock(playlist);
     
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
 }
 char *repeat(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
 
-    //add repeat argument handling 0 and 1;
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    if(v.data[0]=="0")
-    {
-        enum vlc_playlist_playback_repeat mode=VLC_PLAYLIST_PLAYBACK_REPEAT_NONE;
-        vlc_playlist_SetPlaybackRepeat (playlist, mode);
-        strcat(output, "Repeat 0\nOK\n");   
-    }
-    else
+    int state=atoi(v.data[0]);
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    if(state==1)
     {
         enum vlc_playlist_playback_repeat mode=VLC_PLAYLIST_PLAYBACK_REPEAT_CURRENT;
         vlc_playlist_SetPlaybackRepeat (playlist, mode);
-        strcat(output, "Repeat 1\nOK\n");   
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
     }
-    vlc_player_Unlock(player);
-    msg_Info(intfa, "Play Pos%s.", output);
-    destroyVector(&v);
-    return (char *)output;
-}
-char *randomF(intf_thread_t *intfa, char *arguments)
-{
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-
-    //add repeat argument handling 0 and 1;
-    vlc_playlist_t *playlist = intfa->p_sys->vlc_playlist;
-    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
-    vlc_player_Lock(player);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
-    if(v.data[0]=="0")
+    else if(state==0)
     {
-        enum vlc_playlist_playback_order mode=VLC_PLAYLIST_PLAYBACK_ORDER_NORMAL;
-        vlc_playlist_SetPlaybackOrder (playlist, mode);
-        strcat(output, "Random 0\nOK\n");   
+        enum vlc_playlist_playback_repeat mode=VLC_PLAYLIST_PLAYBACK_REPEAT_ALL;
+        vlc_playlist_SetPlaybackRepeat (playlist, mode);
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
     }
     else
     {
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    vlc_playlist_Unlock(playlist);
+    
+    destroyVector(&v); return (char *)output;
+}
+char *randomF(intf_thread_t *intfa, char *arguments)
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    int state=atoi(v.data[0]);
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    if(state==1)
+    {
         enum vlc_playlist_playback_order mode=VLC_PLAYLIST_PLAYBACK_ORDER_RANDOM;
         vlc_playlist_SetPlaybackOrder (playlist, mode);
-        strcat(output, "Random 1\nOK\n");   
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
     }
-    vlc_player_Unlock(player);
-    msg_Info(intfa, "Play Pos%s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    else if(state==0)
+    {
+        enum vlc_playlist_playback_order mode=VLC_PLAYLIST_PLAYBACK_ORDER_NORMAL;
+        vlc_playlist_SetPlaybackOrder (playlist, mode);
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else
+    {
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    vlc_playlist_Unlock(playlist);
+    
+    destroyVector(&v); return (char *)output;
 }
 char *single(intf_thread_t *intfa, char *arguments) //how to stop playback after completing song
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    int state=atoi(v.data[0]);
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    if(state==1)
+    {
+        enum vlc_playlist_playback_repeat mode=vlc_playlist_GetPlaybackRepeat(playlist);
+        if(mode==VLC_PLAYLIST_PLAYBACK_REPEAT_CURRENT)
+        {
+            mode=VLC_PLAYLIST_PLAYBACK_REPEAT_CURRENT;
+            vlc_playlist_SetPlaybackRepeat (playlist, mode);
+        }
+        else
+        {
+            vlc_player_Stop(player);
+        }
+
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else if(state==0) //normal playback - /*fixme: initial conditions and media library conditions*/
+    {
+        enum vlc_playlist_playback_repeat mode=VLC_PLAYLIST_PLAYBACK_REPEAT_ALL;
+        vlc_playlist_SetPlaybackRepeat (playlist, mode);
+        
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    else
+    {
+        strcat(output,"OK\n");
+        //msg_Info(intfa,"Playling at Pos: %d.",pos);
+    }
+    vlc_playlist_Unlock(playlist);
     
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
 }
 char *setvol(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    int volume=atoi(v.data[0]);
+    float x,fVolume=(float)volume/100.0;
+    msg_Info(intfa,"%d %f",volume,fVolume);
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    //x=vlc_player_aout_GetVolume(player); msg_Info(intfa,"%f",x);
+    vlc_player_aout_SetVolume(player,fVolume);
+    //x=vlc_player_aout_GetVolume(player); msg_Info(intfa,"%f",x);
+    vlc_playlist_Unlock(playlist);
     
     strcat(output, "OK\n");
     //msg_Info(intfa, "Clear %s.", output);
+    
     destroyVector(&v); return (char *)output;
 }
 char *volume(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
+    int volume=atoi(v.data[0]);
+    float x,fVolume=(float)volume/100.0;
+    msg_Info(intfa,"%d %f",volume,fVolume);
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_player_t *player = vlc_playlist_GetPlayer(playlist);
+    vlc_playlist_Lock(playlist);
+    //x=vlc_player_aout_GetVolume(player); msg_Info(intfa,"%f",x);
+    vlc_player_aout_SetVolume(player,fVolume);
+    //x=vlc_player_aout_GetVolume(player); msg_Info(intfa,"%f",x);
+    vlc_playlist_Unlock(playlist);
     
     strcat(output, "OK\n");
     //msg_Info(intfa, "Clear %s.", output);
+    
     destroyVector(&v); return (char *)output;
 }
 // Features Not Available in VLC
@@ -481,9 +570,6 @@ char *pauseF(intf_thread_t *intfa, char *arguments)
         
         strcat(output,"OK\n");
         //msg_Info(intfa,"Playling at Pos: %d.",pos);
-
-        // strcat(output,"Error: Already Paused.");
-        //msg_Info(intfa,"Error: Bad Position/Index.");
     }
     else //Invalid Positions
     {
@@ -1788,7 +1874,6 @@ char *cleartagid(intf_thread_t *intfa, char *arguments)
     destroyVector(&v); return (char *)output;
 }
 
-#pragma region
 //5. Stored Playlists
 char *listplaylist(intf_thread_t *intfa, char *arguments)
 {
@@ -2002,6 +2087,7 @@ char *playlistmove(intf_thread_t *intfa, char *arguments)
     destroyVector(&v); return (char *)output;
 }
 
+#pragma region
 //6. Music Database
 char *count(intf_thread_t *intfa, char *arguments)
 {
@@ -2889,20 +2975,20 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
                     {
                         msg_Info(intfa,"ACK Command Does Exist\n");
                         char* output = commandF->commandName(intfa, argumentsC);
-                        vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-                        vlc_playlist_Lock(playlist);
-                        vlc_playlist_item_t* playlistItem;
-                        int n=vlc_playlist_Count(playlist);
-                        for(int i=0;i<n;i++)
-                        {
-                            playlistItem = vlc_playlist_Get(playlist,i);
-                            if(playlistItem==NULL)
-                            msg_Info(intfa,"wtf");
-                            int j=vlc_playlist_item_GetId(playlistItem);
-                            msg_Info(intfa,"(%d %d)",i,j);
-                            playlistItem=NULL;
-                        }
-                        vlc_playlist_Unlock(playlist);
+                        // vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+                        // vlc_playlist_Lock(playlist);
+                        // vlc_playlist_item_t* playlistItem;
+                        // int n=vlc_playlist_Count(playlist);
+                        // for(int i=0;i<n;i++)
+                        // {
+                        //     playlistItem = vlc_playlist_Get(playlist,i);
+                        //     if(playlistItem==NULL)
+                        //     msg_Info(intfa,"wtf");
+                        //     int j=vlc_playlist_item_GetId(playlistItem);
+                        //     msg_Info(intfa,"(%d %d)",i,j);
+                        //     playlistItem=NULL;
+                        // }
+                        // vlc_playlist_Unlock(playlist);
                         
                         if(!strncmp(output,"Error",5))
                         {
