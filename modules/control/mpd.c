@@ -247,7 +247,6 @@ char *stats(intf_thread_t *intfa, char *arguments)
     //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
 }
-#pragma endregion
 
 //2. Playback Options
 char *consume(intf_thread_t *intfa, char *arguments) 
@@ -479,6 +478,7 @@ char *replay_gain_status(intf_thread_t *intfa, char *arguments)
     //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
 }
+#pragma endregion
 
 //3. Controlling Playback
 char *play(intf_thread_t *intfa, char *arguments)
@@ -1945,23 +1945,32 @@ char *listplaylists(intf_thread_t *intfa, char *arguments) //same problem of par
 
 char *save(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
-    
-    char *filename=NULL;
-    strcat(filename,"/home/nightwayne/MPD/"); //directory where playlists are saved
-    strcat(filename,v.data[0]);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     vlc_playlist_Lock(playlist);
+    // char *filename = malloc(sizeof(char) * 512); bzero(filename, 512);
+    // msg_Info(intfa,"f");
+    // strcat(filename,"/home/nightwayne/vlc-dev/MPD/"); /*fixme: only relative paths, absolute paths not sys independent*/
+    // msg_Info(intfa,"g");
+    // strcat(filename,v.data[0]);
+    // msg_Info(intfa,"h");
+    // strcat(filename,".xspf");
+    // msg_Info(intfa,"%s",filename);
+    const char* filename="/home/nightwayne/vlc-dev/MPD/zz";
+    vlc_playlist_Export (playlist, filename, "xspf");
     vlc_playlist_Export (playlist, filename, ".xspf");
+    vlc_playlist_Export (playlist, filename, "m3u");
+    vlc_playlist_Export (playlist, filename, ".m3u");
+    vlc_playlist_Export (playlist, filename, "html");
+    vlc_playlist_Export (playlist, filename, "html");
     vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
+    
     strcat(output, "OK\n");
-    msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    //msg_Info(intfa, "Clear %s.", output);
+    
+    destroyVector(&v); return (char *)output;
 }
 char *load(intf_thread_t *intfa, char *arguments)
 {
@@ -2087,7 +2096,6 @@ char *playlistmove(intf_thread_t *intfa, char *arguments)
     destroyVector(&v); return (char *)output;
 }
 
-#pragma region
 //6. Music Database
 char *count(intf_thread_t *intfa, char *arguments)
 {
@@ -2121,6 +2129,34 @@ char *list(intf_thread_t *intfa, char *arguments)
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t params = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* p_params = &params;
+    int kk=vlc_ml_add_folder (ml,"file:///home/nightwayne/Music2");
+    msg_Info(intfa,"kk %d",kk);
+    
+    //5
+    int j=vlc_ml_count_artists(ml,p_params,true);
+    msg_Info(intfa,"%d",j);
+
+    //7
+    vlc_ml_media_list_t *aa =	vlc_ml_list_audio_media (ml, p_params);
+    msg_Info(intfa,"%d",aa->i_nb_items);
+    vlc_ml_media_t *ans=&aa->p_items[1];
+    int id=ans->i_id;
+    msg_Info(intfa,"%s %d",ans->psz_title,id);
+
+    //8
+    vlc_ml_artist_list_t * ab =vlc_ml_list_artists (ml, p_params, true);
+    msg_Info(intfa,"%d",ab->i_nb_items);
+    vlc_ml_artist_t *anb;
+    for(int i=0;i<ab->i_nb_items;i++)
+    {
+        anb=&ab->p_items[i];
+        int id2=anb->i_id;
+        msg_Info(intfa,"%s %d",anb->psz_name,id2);
+    }
+
     strcat(output, "OK\n");
     //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
@@ -2267,6 +2303,7 @@ char *read_picture(intf_thread_t *intfa, char *arguments)
     destroyVector(&v); return (char *)output;
 }
 
+#pragma region
 //7. Mounts & Neighbours
 char *mount(intf_thread_t *intfa, char *arguments)
 {
@@ -2469,11 +2506,23 @@ char *config(intf_thread_t *intfa, char *arguments)
 }
 char *commands(intf_thread_t *intfa, char *arguments)
 {
-    //code
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+    
+    strcat(output, "play\npause\nnext\nprevious\nOK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    
+    destroyVector(&v); return (char *)output;
 }
 char *not_commands(intf_thread_t *intfa, char *arguments)
 {
-    //code
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+    
+    strcat(output, "play\npause\nnext\nprevious\nOK\n");
+    //msg_Info(intfa, "Clear %s.", output);
+    
+    destroyVector(&v); return (char *)output;
 }
 char *urlhandlers(intf_thread_t *intfa, char *arguments)
 {
