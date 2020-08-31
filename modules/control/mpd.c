@@ -49,12 +49,10 @@ struct intf_sys_t
 
     /* player listeners */
     vlc_player_listener_id *player_listener;
-    //vlc_player_aout_listener_id *player_aout_listener;
 
     /* status changes */
     vlc_mutex_t status_lock;
     enum vlc_player_state last_state;
-    //bool b_input_buffering;
 };
 typedef struct commandFunc
 {
@@ -184,7 +182,7 @@ const commandFunc command_list_array[] = {
     {"toggleoutput", toggleoutput},
     {"unmount", unmount},
     {"unsubscribe", unsubscribe},
-    {"update", handle_update},
+    {"update", update},
     {"urlhandlers", urlhandlers},
     {"volume", volume}};
 
@@ -478,7 +476,6 @@ char *replay_gain_status(intf_thread_t *intfa, char *arguments)
     //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
 }
-#pragma endregion
 
 //3. Controlling Playback
 char *play(intf_thread_t *intfa, char *arguments)
@@ -795,7 +792,9 @@ char *seekcur(intf_thread_t *intfa, char *arguments)
     //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
 }
+#pragma endregion
 
+#pragma region
 //4. Queue
 void addRecursively(intf_thread_t *intfa, char *basePath)
 {
@@ -1161,7 +1160,7 @@ char *playlist(intf_thread_t *intfa, char *arguments)
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 50);bzero(output, 50);
     
-    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
 
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     char *idString[65]; /* fixme: check size, max songs= 2^65 -1 */ 
@@ -1770,7 +1769,7 @@ char *prioid(intf_thread_t *intfa, char *arguments) //How to decide Prio
     //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
 }
-char *rangeid(intf_thread_t *intfa, char *arguments) //how to decide which portion of songs to play before-hand?
+char *rangeid(intf_thread_t *intfa, char *arguments) //left
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
@@ -1873,7 +1872,9 @@ char *cleartagid(intf_thread_t *intfa, char *arguments)
     //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
 }
+#pragma endregion
 
+#pragma region
 //5. Stored Playlists
 char *listplaylist(intf_thread_t *intfa, char *arguments)
 {
@@ -1904,7 +1905,7 @@ char *listplaylist(intf_thread_t *intfa, char *arguments)
     destroyVector(&v);
     return (char *)output;
 }
-char *listplaylistinfo(intf_thread_t *intfa, char *arguments) //need to add meta-data, similar to playlistinfo
+char *listplaylistinfo(intf_thread_t *intfa, char *arguments)
 {
     vect v;
     vlc_vector_init(&v);
@@ -1933,7 +1934,7 @@ char *listplaylistinfo(intf_thread_t *intfa, char *arguments) //need to add meta
     destroyVector(&v);
     return (char *)output;
 }
-char *listplaylists(intf_thread_t *intfa, char *arguments) //same problem of parsing files with particular extension - need to study regex for it
+char *listplaylists(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
@@ -1950,21 +1951,11 @@ char *save(intf_thread_t *intfa, char *arguments)
 
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     vlc_playlist_Lock(playlist);
-    // char *filename = malloc(sizeof(char) * 512); bzero(filename, 512);
-    // msg_Info(intfa,"f");
-    // strcat(filename,"/home/nightwayne/vlc-dev/MPD/"); /*fixme: only relative paths, absolute paths not sys independent*/
-    // msg_Info(intfa,"g");
-    // strcat(filename,v.data[0]);
-    // msg_Info(intfa,"h");
-    // strcat(filename,".xspf");
-    // msg_Info(intfa,"%s",filename);
-    const char* filename="/home/nightwayne/vlc-dev/MPD/zz";
-    vlc_playlist_Export (playlist, filename, "xspf");
-    vlc_playlist_Export (playlist, filename, ".xspf");
-    vlc_playlist_Export (playlist, filename, "m3u");
-    vlc_playlist_Export (playlist, filename, ".m3u");
-    vlc_playlist_Export (playlist, filename, "html");
-    vlc_playlist_Export (playlist, filename, "html");
+    char *filename = malloc(sizeof(char) * 512); bzero(filename, 512);
+    strcat(filename,"/home/nightwayne/vlc-dev/MPD/"); /*fixme: only relative paths, absolute paths not sys independent*/
+    strcat(filename,v.data[0]); strcat(filename,".m3u");
+    //msg_Info(intfa,"%s",filename);
+    vlc_playlist_Export (playlist, filename, "export-m3u");
     vlc_playlist_Unlock(playlist);
     
     strcat(output, "OK\n");
@@ -1974,25 +1965,22 @@ char *save(intf_thread_t *intfa, char *arguments)
 }
 char *load(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512);bzero(output, 512);
+    
+    vlc_tick_t t=0;
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST; enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],NULL,NULL,i_type,i_net);
+
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
+    vlc_playlist_Preparse (playlist,item);
+    vlc_playlist_AppendOne (playlist,item);
     vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
+    
     strcat(output, "OK\n");
     msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    destroyVector(&v); return (char *)output;
 }
 char *rm(intf_thread_t *intfa, char *arguments)
 {
@@ -2015,238 +2003,680 @@ char *renameF(intf_thread_t *intfa, char *arguments)
 
 char *playlistadd(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512);bzero(output, 512);
+    
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST; enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],NULL,NULL,i_type,i_net);
+
+    char* uri=v.data[1]; char* path = vlc_uri2path(uri);
+    char* name=strrchr(uri,'/'); name++; /* fixme: if name=null *//*fixme: non media files handle*/
+    input_item_t *media=input_item_New(uri,name);
+    
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    char* inp=vlc_path2uri(v.data[1],"file");
-    input_item_t *media=input_item_New(inp,"wit");/*dummy, needs to be extracted*/
-    size_t ind=vlc_playlist_Count(playlist);
-    vlc_playlist_InsertOne(playlist,ind,media);
+    
+    vlc_playlist_Preparse (playlist,item);
+    vlc_playlist_AppendOne (playlist,item);
+    vlc_playlist_InsertOne(playlist,vlc_playlist_Count(playlist),media);
+
+    char *filename = malloc(sizeof(char) * 512); bzero(filename, 512);
+    strcat(filename,"/home/nightwayne/vlc-dev/MPD/"); /*fixme: only relative paths, absolute paths not sys independent*/
+    strcat(filename,v.data[0]); strcat(filename,".m3u");
+    vlc_playlist_Export (playlist, filename, "export-m3u");
+    
     vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
+    
     strcat(output, "OK\n");
     msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    destroyVector(&v); return (char *)output;
 }
 char *playlistclear(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512);bzero(output, 512);
+    
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST; enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],NULL,NULL,i_type,i_net);
+
+    char* uri=v.data[1]; char* path = vlc_uri2path(uri);
+    char* name=strrchr(uri,'/'); name++; /* fixme: if name=null *//*fixme: non media files handle*/
+    input_item_t *media=input_item_New(uri,name);
+    
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     vlc_playlist_Lock(playlist);
+    
+    vlc_playlist_Preparse (playlist,item);
+    vlc_playlist_AppendOne (playlist,item);
     vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    vlc_playlist_Clear(playlist);
+
+    char *filename = malloc(sizeof(char) * 512); bzero(filename, 512);
+    strcat(filename,"/home/nightwayne/vlc-dev/MPD/"); /*fixme: only relative paths, absolute paths not sys independent*/
+    strcat(filename,v.data[0]); strcat(filename,".m3u");
+    vlc_playlist_Export (playlist, filename, "export-m3u");
+    
     vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
+    
     strcat(output, "OK\n");
     msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    destroyVector(&v); return (char *)output;
 }
 char *playlistdelete(intf_thread_t *intfa, char *arguments)
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);   
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512);bzero(output, 512);
+    
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST; enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],NULL,NULL,i_type,i_net);
+    int pos=atoi(v.data[1]);
+    
     vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
     vlc_playlist_Lock(playlist);
-    vlc_playlist_Clear(playlist);
-    vlc_tick_t t=0;
-    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST;
-    enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
-    input_item_t * item= input_item_NewExt (v.data[0],"dummy"/*have to finf a way to extract it*/,t, i_type, i_net);
-    //need to test it, if media-type=playlist can be added or not;
-    vlc_playlist_InsertOne (playlist,0,item);
-    int ind=atoiFunction(v.data[1]);
-    vlc_playlist_RemoveOne (playlist,ind);
+    
+    vlc_playlist_Preparse (playlist,item);
+    vlc_playlist_AppendOne (playlist,item);
+    vlc_playlist_RemoveOne(playlist,pos);
+
+    char *filename = malloc(sizeof(char) * 512); bzero(filename, 512);
+    strcat(filename,"/home/nightwayne/vlc-dev/MPD/"); /*fixme: only relative paths, absolute paths not sys independent*/
+    strcat(filename,v.data[0]); strcat(filename,".m3u");
+    vlc_playlist_Export (playlist, filename, "export-m3u");
+    
     vlc_playlist_Unlock(playlist);
-    char *output = malloc(sizeof(char) * 4096);
-    bzero(output, 4096);
+    
     strcat(output, "OK\n");
     msg_Info(intfa, "Save playlist %s.", output);
-    destroyVector(&v);
-    return (char *)output;
+    destroyVector(&v); return (char *)output;
 }
 char *playlistmove(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    char *output = malloc(sizeof(char) * 512);bzero(output, 512);
+    
+    enum input_item_type_e i_type=ITEM_TYPE_PLAYLIST; enum input_item_net_type i_net=ITEM_NET_UNKNOWN;
+    input_item_t * item= input_item_NewExt (v.data[0],NULL,NULL,i_type,i_net);
+    int pos_from=atoi(v.data[1]); int pos_to=atoi(v.data[2]);
+    
+    vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+    vlc_playlist_Lock(playlist);
+    
+    vlc_playlist_Preparse (playlist,item);
+    vlc_playlist_AppendOne (playlist,item);
+    vlc_playlist_MoveOne (playlist,pos_from,pos_to);
+
+    char *filename = malloc(sizeof(char) * 512); bzero(filename, 512);
+    strcat(filename,"/home/nightwayne/vlc-dev/MPD/"); /*fixme: only relative paths, absolute paths not sys independent*/
+    strcat(filename,v.data[0]); strcat(filename,".m3u");
+    vlc_playlist_Export (playlist, filename, "export-m3u");
+    
+    vlc_playlist_Unlock(playlist);
     
     strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    msg_Info(intfa, "Save playlist %s.", output);
     destroyVector(&v); return (char *)output;
 }
 
 //6. Music Database
-char *count(intf_thread_t *intfa, char *arguments)
+void databaseLookup(intf_thread_t *intfa, char* type, vlc_ml_query_params_t* params, FILE *f, char* path, bool addToPlaylist)
+{
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    if((!strcmp(type,"artist"))||(!strcmp(type,"Artist")))
+    {
+        vlc_ml_artist_list_t *ml_artist_list = vlc_ml_list_artists(ml,params,false);
+        vlc_ml_artist_t *ml_artist; char* string;
+        for(int i=0;i<ml_artist_list->i_nb_items;i++)
+        {
+            ml_artist=&ml_artist_list->p_items[i];
+            msg_Info(intfa,"%s",ml_artist->psz_name);
+            if(addToPlaylist)
+            {
+                vlc_ml_media_list_t *ml_media_list=vlc_ml_list_artist_tracks(ml,params,ml_artist->i_id);
+                vlc_ml_media_t *ml_media; input_item_t *media;
+                vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+                vlc_playlist_Lock(playlist);
+                for(int j=0;j<ml_media_list->i_nb_items;j++)
+                {
+                    ml_media=&ml_media_list->p_items[j];
+                    media=vlc_ml_get_input_item(ml,ml_media->i_id);
+                    vlc_playlist_InsertOne(playlist,vlc_playlist_Count(playlist),media);
+                     input_item_Release(media); 
+                }
+                vlc_playlist_Unlock(playlist);
+            }
+            string=strdup(ml_artist->psz_name); strcat(string,"\n");
+            f = fopen (path,"a+"); fputs(string,f); fclose(f);/*msg_Info(intfa,"%s",output);*/
+            bzero(string,strlen(string)); free(string);
+        }
+    }
+    else if((!strcmp(type,"genre"))||(!strcmp(type,"Genre")))
+    {
+        vlc_ml_genre_list_t *ml_genre_list = vlc_ml_list_genres(ml,params);
+        vlc_ml_genre_t *ml_genre; char* string;
+        for(int i=0;i<ml_genre_list->i_nb_items;i++)
+        {
+            ml_genre=&ml_genre_list->p_items[i];
+            msg_Info(intfa,"%s",ml_genre->psz_name);
+            if(addToPlaylist)
+            {
+                vlc_ml_media_list_t *ml_media_list=vlc_ml_list_genre_tracks(ml,params,ml_genre->i_id);
+                vlc_ml_media_t *ml_media; input_item_t *media;
+                vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+                vlc_playlist_Lock(playlist);
+                for(int j=0;j<ml_media_list->i_nb_items;j++)
+                {
+                    ml_media=&ml_media_list->p_items[j];
+                    media=vlc_ml_get_input_item(ml,ml_media->i_id);
+                    vlc_playlist_InsertOne(playlist,vlc_playlist_Count(playlist),media);
+                     input_item_Release(media); 
+                }
+                vlc_playlist_Unlock(playlist);
+            }
+            string=strdup(ml_genre->psz_name);
+            strcat(string,"\n");
+            f = fopen (path,"a+"); fputs(string,f); fclose(f);/*msg_Info(intfa,"%s",output);*/
+            bzero(string,strlen(string)); free(string);
+        }
+    }
+    else if((!strcmp(type,"album"))||(!strcmp(type,"Album")))
+    {
+        vlc_ml_album_list_t *ml_album_list = vlc_ml_list_albums(ml,params);
+        vlc_ml_album_t *ml_album;char* string;
+        for(int i=0;i<ml_album_list->i_nb_items;i++)
+        {
+            ml_album=&ml_album_list->p_items[i];
+            msg_Info(intfa,"%s",ml_album->psz_title);
+            if(addToPlaylist)
+            {
+                vlc_ml_media_list_t *ml_media_list=vlc_ml_list_album_tracks(ml,params,ml_album->i_id);
+                vlc_ml_media_t *ml_media; input_item_t *media;
+                vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
+                vlc_playlist_Lock(playlist);
+                for(int j=0;j<ml_media_list->i_nb_items;j++)
+                {
+                    ml_media=&ml_media_list->p_items[j];
+                    media=vlc_ml_get_input_item(ml,ml_media->i_id);
+                    vlc_playlist_InsertOne(playlist,vlc_playlist_Count(playlist),media);
+                     input_item_Release(media); 
+                }
+                vlc_playlist_Unlock(playlist);
+            }
+            string=strdup(ml_album->psz_title);
+            strcat(string,"\n");
+            f = fopen (path,"a+"); fputs(string,f); fclose(f);/*msg_Info(intfa,"%s",output);*/
+            bzero(string,strlen(string)); free(string);
+        }
+    } 
+}
+char *count(intf_thread_t *intfa, char *arguments)//{multiple filter} and {group: grouptype} Arguments Not Accepted
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char* type=v.data[0]; char* value=v.data[1];
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+    params->psz_pattern=value;
+
+    if((!strcmp(type,"artist"))||(!strcmp(type,"Artist")))
+    {
+        vlc_ml_artist_list_t *ml_artist_list = vlc_ml_list_artists(ml,params,false);
+        vlc_ml_artist_t *ml_artist;char* string;
+        for(int i=0;i<ml_artist_list->i_nb_items;i++)
+        {
+            ml_artist=&ml_artist_list->p_items[i];
+            msg_Info(intfa,"%s",ml_artist->psz_name);
+            string=strdup(ml_artist->psz_name);
+            strcat(string,"\n");
+            f = fopen (path,"a+"); fputs(string,f); fclose(f);/*msg_Info(intfa,"%s",output);*/
+            bzero(string,strlen(string)); free(string);
+        }
+    }
+    else if((!strcmp(type,"genre"))||(!strcmp(type,"Genre")))
+    {
+        vlc_ml_genre_list_t *ml_genre_list = vlc_ml_list_genres(ml,params);
+        vlc_ml_genre_t *ml_genre; char* string;
+        for(int i=0;i<ml_genre_list->i_nb_items;i++)
+        {
+            ml_genre=&ml_genre_list->p_items[i];
+            msg_Info(intfa,"%s",ml_genre->psz_name);
+            string=strdup(ml_genre->psz_name);
+            strcat(string,"\n");
+            f = fopen (path,"a+"); fputs(string,f); fclose(f);/*msg_Info(intfa,"%s",output);*/
+            bzero(string,strlen(string)); free(string);
+        }
+    }
+    else if((!strcmp(type,"album"))||(!strcmp(type,"Album")))
+    {
+        vlc_ml_album_list_t *ml_album_list = vlc_ml_list_albums(ml,params);
+        vlc_ml_album_t *ml_album;char* string;
+        for(int i=0;i<ml_album_list->i_nb_items;i++)
+        {
+            ml_album=&ml_album_list->p_items[i];
+            msg_Info(intfa,"%s",ml_album->psz_title);
+            string=strdup(ml_album->psz_title);
+            strcat(string,"\n");
+            f = fopen (path,"a+"); fputs(string,f); fclose(f);/*msg_Info(intfa,"%s",output);*/
+            bzero(string,strlen(string)); free(string);
+        }
+    }
+    else
+    {
+        strcat(output,"Error: Invalid Type/Number of Arguments.");
+        destroyVector(&v); return (char *)output;
+    }
+    
+    strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+    bzero(output,strlen(output)); strcpy(output,"file"); 
     destroyVector(&v); return (char *)output;
 }
-char *find(intf_thread_t *intfa, char *arguments)
+char *find(intf_thread_t *intfa, char *arguments)//[sort {TYPE}] [window {START:END}] Arguments Not Accepted
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char* type=v.data[0]; char* value=v.data[1];
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+    params->psz_pattern=value;
+
+    if((!strcmp(type,"artist"))||(!strcmp(type,"Artist"))||(!strcmp(type,"genre"))||(!strcmp(type,"Genre"))||(!strcmp(type,"album"))||(!strcmp(type,"Album")))
+    {
+        databaseLookup(intfa,type,params,f,path,false);
+        strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+        bzero(output,strlen(output)); strcpy(output,"file"); 
+    }
+    else
+    {
+        strcat(output,"Error: Invalid Type/Number of Arguments.");
+    }
     destroyVector(&v); return (char *)output;
 }
-char *findadd(intf_thread_t *intfa, char *arguments)
+char *findadd(intf_thread_t *intfa, char *arguments)//[sort {TYPE}] [window {START:END}] Arguments Not Accepted
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char* type=v.data[0]; char* value=v.data[1];
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+    params->psz_pattern=value;
+
+    if((!strcmp(type,"artist"))||(!strcmp(type,"Artist"))||(!strcmp(type,"genre"))||(!strcmp(type,"Genre"))||(!strcmp(type,"album"))||(!strcmp(type,"Album")))
+    {
+        databaseLookup(intfa,type,params,f,path,true);
+        strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+        bzero(output,strlen(output)); strcpy(output,"file"); 
+    }
+    else
+    {
+        strcat(output,"Error: Invalid Type/Number of Arguments.");
+    }
     destroyVector(&v); return (char *)output;
 }
-char *list(intf_thread_t *intfa, char *arguments)
+
+void listRecursively(intf_thread_t *intfa, char *basePath, FILE *f, char* filePath, bool metadata)
+{
+    char path[1000]; struct dirent *dp; DIR *dir = opendir(basePath);
+
+    if (!dir)
+    return;
+    else
+    {
+        while ((dp = readdir(dir)) != NULL)
+        {
+            if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
+            {
+                //msg_Info(intfa,"Path: %s",path);
+                strcpy(path, basePath); strcat(path,"/"); strcat(path, dp->d_name);
+                struct stat st_buf; int status = stat (path, &st_buf);
+                char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+
+                if (status==0 && S_ISREG (st_buf.st_mode)) //File
+                {
+                    //msg_Info(intfa,"file");
+                    strcat(output,"file: "); strcat(output,path); strcat(output,"\n");
+                    if(metadata==false)
+                    {
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f);    
+                    }
+                    else
+                    {
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); bzero(output,strlen(output));  
+                        char* uri=vlc_path2uri(path,"file"); char* name=strrchr(uri,'/'); name++;
+                        input_item_t *item=input_item_New(uri,NULL);
+                        char *intString[4]; /* fixme: check size, max songs= 9999 */ 
+
+                        //filename
+                        strcat(output,"file: ");strcat(output,item->psz_name); strcat(output,"\n"); /*fixme: name and uri correct*/
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); msg_Info(intfa,"\n%s",output); bzero(output,strlen(output));
+
+                        //artist && albumartist
+                        char* artist=input_item_GetArtist(item); strcat(output,"Artist: ");
+                        if(artist!=NULL)
+                        sprintf(output,"Artist: %s",artist);
+                        strcat(output,"\n");
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f);/*msg_Info(intfa,"\n%s",output);*/ bzero(output,strlen(output));
+                        char* albumartist=input_item_GetAlbumArtist(item);strcat(output,"AlbumArtist: ");
+                        if(albumartist!=NULL)
+                        sprintf(output,"AlbumArtist: %s",albumartist);
+                        strcat(output,"\n");
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); /*msg_Info(intfa,"\n%s",output);*/ bzero(output,strlen(output));
+
+                        //title && album
+                        char* title=input_item_GetTitle(item);strcat(output,"Title: ");
+                        if(artist!=NULL)
+                        sprintf(output,"Title: %s",title);
+                        strcat(output,"\n");
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); /*msg_Info(intfa,"\n%s",output);*/ bzero(output,strlen(output));
+                        char* album=input_item_GetAlbum(item);strcat(output,"Album: ");
+                        if(artist!=NULL)
+                        sprintf(output,"Album: %s",album);
+                        strcat(output,"\n");
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); /*msg_Info(intfa,"\n%s",output);*/ bzero(output,strlen(output));
+                        
+                        //tracknumber && date
+                        char* track=input_item_GetTrackNumber(item);strcat(output,"Track: ");
+                        if(track!=NULL)
+                        sprintf(output,"Track: %s",track);
+                        strcat(output,"\n");
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); /*msg_Info(intfa,"\n%s",output);*/ bzero(output,strlen(output));
+                        char* date=input_item_GetDate(item);strcat(output,"Date: ");
+                        if(date!=NULL)
+                        sprintf(output,"Date: %s",date);
+                        strcat(output,"\n");
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); /*msg_Info(intfa,"\n%s",output);*/ bzero(output,strlen(output));
+                        
+                        //genre && disc
+                        char* genre=input_item_GetGenre(item);strcat(output,"Genre: ");
+                        if(genre!=NULL)
+                        sprintf(output,"Genre: %s",genre);
+                        strcat(output,"\n");
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); /*msg_Info(intfa,"\n%s",output);*/ bzero(output,strlen(output));
+                        char* disc=input_item_GetDiscNumber(item);strcat(output,"Disc: ");
+                        if(disc!=NULL)
+                        sprintf(output,"Disc: %s",disc);
+                        strcat(output,"\n");
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); /*msg_Info(intfa,"\n%s",output);*/ bzero(output,strlen(output));
+                        
+                        //time && duration
+                        vlc_tick_t tick=input_item_GetDuration(item); SEC_FROM_VLC_TICK(tick); 
+                        float duration=(float)(tick)/1000000.0; int time=duration;
+                        strcat(output,"Time: "); sprintf(intString, "%d", time);
+                        strcat(output,intString);strcat(output,"\n"); /*msg_Info(intfa,"\n%s",output);*/ bzero(intString,strlen(intString));
+                        strcat(output,"Duration: "); sprintf(intString, "%f", duration);
+                        strcat(output,intString);strcat(output,"\n"); /*msg_Info(intfa,"\n%s",output);*/ bzero(intString,strlen(intString));
+                        f = fopen (filePath,"a+"); fputs(output,f); fclose(f); bzero(output,strlen(output)); 
+                    }
+                    
+                }
+                else if(status==0 && S_ISDIR (st_buf.st_mode)) //Folder
+                {
+                    //msg_Info(intfa,"folder");
+                    strcat(output,"directory: "); strcat(output,path); strcat(output,"\n");
+                    f = fopen (filePath,"a+"); fputs(output,f); fclose(f);
+                }
+                else //Not A File
+                {
+                    msg_Info(intfa,"nothing");
+                }
+                bzero(output,strlen(output)); free(output);
+                listRecursively(intfa, path,f,filePath,metadata);
+            }
+        }
+    }
+
+    closedir(dir);
+}
+char *list(intf_thread_t *intfa, char *arguments) //{filter} and {group: grouptype} Arguments Not Accepted 
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
     vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
-    vlc_ml_query_params_t params = vlc_ml_query_params_create();
-    vlc_ml_query_params_t* p_params = &params;
-    int kk=vlc_ml_add_folder (ml,"file:///home/nightwayne/Music2");
-    msg_Info(intfa,"kk %d",kk);
-    
-    //5
-    int j=vlc_ml_count_artists(ml,p_params,true);
-    msg_Info(intfa,"%d",j);
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+    char* type=v.data[0];
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
 
-    //7
-    vlc_ml_media_list_t *aa =	vlc_ml_list_audio_media (ml, p_params);
-    msg_Info(intfa,"%d",aa->i_nb_items);
-    vlc_ml_media_t *ans=&aa->p_items[1];
-    int id=ans->i_id;
-    msg_Info(intfa,"%s %d",ans->psz_title,id);
-
-    //8
-    vlc_ml_artist_list_t * ab =vlc_ml_list_artists (ml, p_params, true);
-    msg_Info(intfa,"%d",ab->i_nb_items);
-    vlc_ml_artist_t *anb;
-    for(int i=0;i<ab->i_nb_items;i++)
+    if((!strcmp(type,"artist"))||(!strcmp(type,"Artist")))
     {
-        anb=&ab->p_items[i];
-        int id2=anb->i_id;
-        msg_Info(intfa,"%s %d",anb->psz_name,id2);
+        vlc_ml_artist_list_t *ml_artist_list = vlc_ml_list_artists(ml,params,false);
+        vlc_ml_artist_t *ml_artist;char* string;
+        for(int i=0;i<ml_artist_list->i_nb_items;i++)
+        {
+            ml_artist=&ml_artist_list->p_items[i];
+            msg_Info(intfa,"%s",ml_artist->psz_name);
+            string=strdup(ml_artist->psz_name);
+            strcat(string,"\n");
+            f = fopen (path,"a+"); fputs(string,f); fclose(f);/*msg_Info(intfa,"%s",output);*/
+            bzero(string,strlen(string)); free(string);
+        }
+    }
+    else if((!strcmp(type,"genre"))||(!strcmp(type,"Genre")))
+    {
+        vlc_ml_genre_list_t *ml_genre_list = vlc_ml_list_genres(ml,params);
+        vlc_ml_genre_t *ml_genre; char* string;
+        for(int i=0;i<ml_genre_list->i_nb_items;i++)
+        {
+            ml_genre=&ml_genre_list->p_items[i];
+            msg_Info(intfa,"%s",ml_genre->psz_name);
+            string=strdup(ml_genre->psz_name);
+            strcat(string,"\n");
+            f = fopen (path,"a+"); fputs(string,f); fclose(f);/*msg_Info(intfa,"%s",output);*/
+            bzero(string,strlen(string)); free(string);
+        }
+    }
+    else if((!strcmp(type,"album"))||(!strcmp(type,"Album")))
+    {
+        vlc_ml_album_list_t *ml_album_list = vlc_ml_list_albums(ml,params);
+        vlc_ml_album_t *ml_album;char* string;
+        for(int i=0;i<ml_album_list->i_nb_items;i++)
+        {
+            ml_album=&ml_album_list->p_items[i];
+            msg_Info(intfa,"%s",ml_album->psz_title);
+            string=strdup(ml_album->psz_title);
+            strcat(string,"\n");
+            f = fopen (path,"a+"); fputs(string,f); fclose(f);/*msg_Info(intfa,"%s",output);*/
+            bzero(string,strlen(string)); free(string);
+        }
+    }
+    else
+    {
+        strcat(output,"Error: Invalid Type/Number of Arguments.");
+        destroyVector(&v); return (char *)output;
+    }
+    
+    strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+    bzero(output,strlen(output)); strcpy(output,"file"); 
+    destroyVector(&v); return (char *)output;
+}
+char *listall(intf_thread_t *intfa, char *arguments)//{URI} Arguments Not Accepted
+{
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_ml_entry_point_list_t* ml_entrypoint_list;
+    vlc_ml_entry_point_t* ml_entrypoint; char* mrl; char* pathI;
+    vlc_ml_list_folder(ml,&ml_entrypoint_list);
+    for(int i=0;i<ml_entrypoint_list->i_nb_items;i++)
+    {
+        ml_entrypoint=&ml_entrypoint_list->p_items[i];
+        mrl=ml_entrypoint->psz_mrl;
+        pathI = vlc_uri2path(mrl);
+        listRecursively(intfa,pathI,f,path,false);
     }
 
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+    bzero(output,strlen(output)); strcpy(output,"file"); 
     destroyVector(&v); return (char *)output;
 }
-char *listall(intf_thread_t *intfa, char *arguments)
+char *listallinfo(intf_thread_t *intfa, char *arguments)//{URI} Arguments Not Accepted
 {
-    vect v;
-    vlc_vector_init(&v);
-    getArg(intfa,arguments,&v);
+    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
 
-    printf("listAll\n");
-    char *returnString=malloc(sizeof(char)*4096);
-    bzero(returnString,4096);
-    vlc_medialibrary_t* p_ml = intfa->p_sys->vlc_medialibrary;
-    vlc_ml_query_params_t params = vlc_ml_query_params_create(); vlc_ml_query_params_t* p_params = &params;
-    vlc_ml_media_list_t *p_vlc_ml_media_list_t=vlc_ml_list_audio_media (p_ml, p_params);
-    char *title=NULL;
-    for(int i=0;i<p_vlc_ml_media_list_t->i_nb_items;i++)
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_ml_entry_point_list_t* ml_entrypoint_list;
+    vlc_ml_entry_point_t* ml_entrypoint; char* mrl; char* pathI;
+    vlc_ml_list_folder(ml,&ml_entrypoint_list);
+    for(int i=0;i<ml_entrypoint_list->i_nb_items;i++)
     {
-        vlc_ml_media_t *p_vlc_ml_media_t=&p_vlc_ml_media_list_t->p_items[i];
-        title=p_vlc_ml_media_t->psz_title;
-        strcat(title,"\n");
-        strcat(returnString,title);
-        //release not working
-        //vlc_ml_media_release (p_vlc_ml_media_t);
+        ml_entrypoint=&ml_entrypoint_list->p_items[i];
+        mrl=ml_entrypoint->psz_mrl;
+        pathI = vlc_uri2path(mrl);
+        listRecursively(intfa,pathI,f,path,true);
     }
-    //vlc_ml_media_list_release(p_vlc_ml_media_list_t);
-    msg_Info(intfa,"%s%s.",title,returnString);
-    destroyVector(&v);
-    return (char*)returnString;
-    
+
+    strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+    bzero(output,strlen(output)); strcpy(output,"file"); 
+    destroyVector(&v); return (char *)output;
 }
-char *listallinfo(intf_thread_t *intfa, char *arguments)
+char *listfiles(intf_thread_t *intfa, char *arguments)//{URI} Arguments Not Accepted
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_ml_entry_point_list_t* ml_entrypoint_list;
+    vlc_ml_entry_point_t* ml_entrypoint; char* mrl; char* pathI;
+    vlc_ml_list_folder(ml,&ml_entrypoint_list);
+    for(int i=0;i<ml_entrypoint_list->i_nb_items;i++)
+    {
+        ml_entrypoint=&ml_entrypoint_list->p_items[i];
+        mrl=ml_entrypoint->psz_mrl;
+        pathI = vlc_uri2path(mrl);
+        listRecursively(intfa,pathI,f,path,false);
+    }
+
+    strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+    bzero(output,strlen(output)); strcpy(output,"file"); 
     destroyVector(&v); return (char *)output;
 }
-char *listfiles(intf_thread_t *intfa, char *arguments)
+char *lsinfo(intf_thread_t *intfa, char *arguments)//{URI} Arguments Not Accepted
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_ml_entry_point_list_t* ml_entrypoint_list;
+    vlc_ml_entry_point_t* ml_entrypoint; char* mrl; char* pathI;
+    vlc_ml_list_folder(ml,&ml_entrypoint_list);
+    for(int i=0;i<ml_entrypoint_list->i_nb_items;i++)
+    {
+        ml_entrypoint=&ml_entrypoint_list->p_items[i];
+        mrl=ml_entrypoint->psz_mrl;
+        pathI = vlc_uri2path(mrl);
+        listRecursively(intfa,pathI,f,path,true);
+    }
+
+    strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+    bzero(output,strlen(output)); strcpy(output,"file"); 
     destroyVector(&v); return (char *)output;
 }
-char *lsinfo(intf_thread_t *intfa, char *arguments)
+
+char *search(intf_thread_t *intfa, char *arguments)//{filter} and {group: grouptype} Arguments Not Accepted
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char* type=v.data[0]; char* value=v.data[1];
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+    params->psz_pattern=value;
+
+    if((!strcmp(type,"artist"))||(!strcmp(type,"Artist"))||(!strcmp(type,"genre"))||(!strcmp(type,"Genre"))||(!strcmp(type,"album"))||(!strcmp(type,"Album")))
+    {
+        databaseLookup(intfa,type,params,f,path,false);
+        strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+        bzero(output,strlen(output)); strcpy(output,"file"); 
+    }
+    else
+    {
+        strcat(output,"Error: Invalid Type/Number of Arguments.");
+    }
     destroyVector(&v); return (char *)output;
 }
-char *search(intf_thread_t *intfa, char *arguments)
+char *searchadd(intf_thread_t *intfa, char *arguments)//{filter} and {group: grouptype} Arguments Not Accepted
+{
+   vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    char* type=v.data[0]; char* value=v.data[1];
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+    params->psz_pattern=value;
+
+    if((!strcmp(type,"artist"))||(!strcmp(type,"Artist"))||(!strcmp(type,"genre"))||(!strcmp(type,"Genre"))||(!strcmp(type,"album"))||(!strcmp(type,"Album")))
+    {
+        databaseLookup(intfa,type,params,f,path,true);
+        strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+        bzero(output,strlen(output)); strcpy(output,"file"); 
+    }
+    else
+    {
+        strcat(output,"Error: Invalid Type/Number of Arguments.");
+    }
+    destroyVector(&v); return (char *)output;
+}
+char *searchaddpl(intf_thread_t *intfa, char *arguments)//{filter} and {group: grouptype} Arguments Not Accepted
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char* type=v.data[0]; char* value=v.data[1];
+    FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";/*fixme: path*/
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_query_params_t param = vlc_ml_query_params_create();
+    vlc_ml_query_params_t* params = &param;
+    params->psz_pattern=value;
+
+    if((!strcmp(type,"artist"))||(!strcmp(type,"Artist"))||(!strcmp(type,"genre"))||(!strcmp(type,"Genre"))||(!strcmp(type,"album"))||(!strcmp(type,"Album")))
+    {
+        databaseLookup(intfa,type,params,f,path,true);
+        strcat(output, "OK\n"); f = fopen (path,"a+"); fputs(output,f); fclose(f);
+        bzero(output,strlen(output)); strcpy(output,"file"); 
+    }
+    else
+    {
+        strcat(output,"Error: Invalid Type/Number of Arguments.");
+    }
     destroyVector(&v); return (char *)output;
 }
-char *searchadd(intf_thread_t *intfa, char *arguments)
-{
-    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
-    destroyVector(&v); return (char *)output;
-}
-char *searchaddpl(intf_thread_t *intfa, char *arguments)
-{
-    vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
-    destroyVector(&v); return (char *)output;
-}
+
 char *update(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
+    
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_reload_folder(ml, "URL"); /*fixme: relative path*//*fixme: do it using entrypoints*/
     
     strcat(output, "OK\n");
     //msg_Info(intfa, "Clear %s.", output);
@@ -2257,51 +2687,39 @@ char *rescan(intf_thread_t *intfa, char *arguments)
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
     char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
+    vlc_medialibrary_t* ml=intfa->p_sys->vlc_medialibrary;
+    vlc_ml_reload_folder(ml, "URL"); /*fixme: relative path*/
+    
     strcat(output, "OK\n");
     //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
 }
-//?
-char *handle_update(intf_thread_t *intfa, char *arguments)
-{
-    //code
-}
+//not implemented
 char *album_art(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char *output=strdup("Command Not Supported by VLC-MPD Module.\nOK\n");
     destroyVector(&v); return (char *)output;
 }
 char *getfingerprint(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char *output=strdup("Command Not Supported by VLC-MPD Module.\nOK\n");
     destroyVector(&v); return (char *)output;
 }
 char *read_comments(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char *output=strdup("Command Not Supported by VLC-MPD Module.\nOK\n");
     destroyVector(&v); return (char *)output;
 }
 char *read_picture(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char *output=strdup("Command Not Supported by VLC-MPD Module.\nOK\n");
     destroyVector(&v); return (char *)output;
 }
+#pragma endregion
 
 #pragma region
 //7. Mounts & Neighbours
@@ -2362,6 +2780,7 @@ char *closeF(intf_thread_t *intfa, char *arguments)
     strcat(output, "OK\n");
     //msg_Info(intfa, "Clear %s.", output);
     destroyVector(&v); return (char *)output;
+    //FD_CLR(client_fd, &currentSockets); //remove client_fd to current
 }
 char *kill(intf_thread_t *intfa, char *arguments)
 {
@@ -2507,21 +2926,19 @@ char *config(intf_thread_t *intfa, char *arguments)
 char *commands(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    strcat(output, "play\npause\nnext\nprevious\nOK\n");
+    strcat(output, "OK\n");
     //msg_Info(intfa, "Clear %s.", output);
-    
     destroyVector(&v); return (char *)output;
 }
 char *not_commands(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512);
+    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
     
-    strcat(output, "play\npause\nnext\nprevious\nOK\n");
+    strcat(output, "OK\n");
     //msg_Info(intfa, "Clear %s.", output);
-    
     destroyVector(&v); return (char *)output;
 }
 char *urlhandlers(intf_thread_t *intfa, char *arguments)
@@ -2547,46 +2964,31 @@ char *decoders(intf_thread_t *intfa, char *arguments)
 char *subscribe(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char *output=strdup("Command Not Supported by VLC-MPD Module.\nOK\n");
     destroyVector(&v); return (char *)output;
 }
 char *unsubscribe(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char *output=strdup("Command Not Supported by VLC-MPD Module.\nOK\n");
     destroyVector(&v); return (char *)output;
 }
 char *channels(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char *output=strdup("Command Not Supported by VLC-MPD Module.\nOK\n");
     destroyVector(&v); return (char *)output;
 }
 char *read_messages(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char *output=strdup("Command Not Supported by VLC-MPD Module.\nOK\n");
     destroyVector(&v); return (char *)output;
 }
 char *send_message(intf_thread_t *intfa, char *arguments)
 {
     vect v; vlc_vector_init(&v); getArg(intfa,arguments,&v);
-    char *output = malloc(sizeof(char) * 512); bzero(output, 512); 
-    
-    strcat(output, "OK\n");
-    //msg_Info(intfa, "Clear %s.", output);
+    char *output=strdup("Command Not Supported by VLC-MPD Module.\nOK\n");
     destroyVector(&v); return (char *)output;
 }
 #pragma endregion
@@ -2863,20 +3265,16 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
     intf_sys_t *p_sys = intfa->p_sys;
     msg_Info(intfa, "Hello from thread side!");
 
-    // 1. Initialising Client
-    int server_fd = intfa->p_sys->server_fd;
-    struct sockaddr_in clientAddr;
+    // 1. Initialising Client and File Descriptor Sets
+    int server_fd = intfa->p_sys->server_fd; struct sockaddr_in clientAddr;
     int client_fd, clientAddrLen = sizeof(clientAddr);
-
     fd_set currentSockets, readySockets;
-    FD_ZERO(&currentSockets);
-    FD_ZERO(&readySockets);
-    FD_SET(server_fd, &currentSockets);
+    FD_ZERO(&currentSockets); FD_ZERO(&readySockets); FD_SET(server_fd, &currentSockets);
 
     // 2. Listening to clients
     if (listen(server_fd, SOMAXCONN) < 0)
     {
-        perror("listen");
+        msg_Info(intfa, "listen");
         exit(EXIT_FAILURE);
     }
 
@@ -2888,7 +3286,7 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
         readySockets = currentSockets;
         if (select(FD_SETSIZE, &readySockets, NULL, NULL, NULL) < 0)
         {
-            perror("select");
+            msg_Info(intfa, "select");
             exit(EXIT_FAILURE);
         }
         for (int i = 0; i < FD_SETSIZE; i++)
@@ -2901,7 +3299,7 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
                     bzero((char *)&clientAddr, sizeof(clientAddr));
                     if ((client_fd = accept(server_fd, (struct sockaddr *)&clientAddr, (socklen_t *)&clientAddrLen)) < 0)
                     {
-                        perror("accept");
+                        msg_Info(intfa, "accept");
                         exit(EXIT_FAILURE);
                     }
                     FD_SET(client_fd, &currentSockets);
@@ -2910,7 +3308,6 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
                     char *output = "OK MPD Version 0.21.25\n";    /*fixme vlc version here*/
                     send(client_fd, output, strlen(output), 0);
                     msg_Info(intfa, "server read: %d\n", client_fd);
-                    //v=false;
                 }
                 else
                 {
@@ -2919,13 +3316,13 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
                     client_fd = i;
                     msg_Info(intfa, "client_fd read: %d\n", client_fd);
 
-                    // 1. read operation ->read data of unknown length - ask mentors
+                    // 1. read operation
                     int n;
-                    char *input = malloc(sizeof(char) * 4096), *argumentsC = malloc(sizeof(char) * 2048), *command = malloc(sizeof(char) * 1024);
-                    bzero(input, 4096); bzero(argumentsC, 2048); bzero(command, 1024); /* fixme: reduce size */
+                    char *input = malloc(sizeof(char) * 4096), *arguments = malloc(sizeof(char) * 2048), *command = malloc(sizeof(char) * 1024);
+                    bzero(input, 4096); bzero(arguments, 2048); bzero(command, 1024); /* fixme: reduce size */
                     if ((n = read(client_fd, input, 4095)) < 0)
                     {
-                        perror("read");
+                        msg_Info(intfa, "read");
                         exit(EXIT_FAILURE);
                     }
                     input[strlen(input) - 1] = '\0';
@@ -2938,20 +3335,20 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
                         char *output = command->commandName(intfa, "arg");
                         send(client_fd, output, strlen(output), 0);
                         msg_Info(intfa, "Size0 %s", output);
-                        free(output);
+                        free(input); free(command); free(arguments); free(output);
                         break;
                     }
                     
                     // 3. Parse Input
-                    parseInput(intfa,input,command,argumentsC);
+                    parseInput(intfa,input,command,arguments);
 
                     // 4. Handle Argument with Missing Quotation
-                    if(argumentsC[0]=='"')
+                    if(arguments[0]=='"')
                     {
                         msg_Info(intfa,"Argument is Missing Quotation\n");
                         char* output = "ACK Argument is Missing Quotation\n";
                         send(client_fd, output, strlen(output), 0);
-                        free(input); free(command); free(argumentsC);
+                        free(input); free(command); free(arguments);
                         break;
                     }
 
@@ -3011,19 +3408,20 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
                     // }
                     vlc_player_Unlock(player);
                     #pragma endregion
+                    
                     // 6. search for the command in the array
                     commandFunc* commandF=searchCommand(command);
-                    if(commandF==NULL)
+                    if(commandF==NULL) //Command Does Not Exists
                     {
                         msg_Info(intfa,"ACK Command Does Not Exist\n");
-                        strcat(command,": Command Doesn't exist\n");
-                        msg_Info(intfa,"%s",command);
+                        strcat("Command Doesn't exist: ",command); strcat(command,"\n");
                         send(client_fd, command, strlen(command), 0);
                     }
-                    else
+                    else //Command Exists
                     {
                         msg_Info(intfa,"ACK Command Does Exist\n");
-                        char* output = commandF->commandName(intfa, argumentsC);
+                        char* output = commandF->commandName(intfa, arguments);
+                        //vlc playlist testing
                         // vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
                         // vlc_playlist_Lock(playlist);
                         // vlc_playlist_item_t* playlistItem;
@@ -3039,24 +3437,24 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
                         // }
                         // vlc_playlist_Unlock(playlist);
                         
-                        if(!strncmp(output,"Error",5))
+                        if(!strncmp(output,"Error",5)) //Error in Arguments
                         {
                             msg_Info(intfa,"Invalid Argument\n");
-                            strcat(argumentsC,": Invalid Argument\n");
-                            send(client_fd, argumentsC, strlen(argumentsC), 0);
+                            strcat("Invalid Argument: ",arguments); strcat(arguments,"\n");
+                            send(client_fd, arguments, strlen(arguments), 0);
                         }
-                        else if(!strcmp(output,"file"))
+                        else if(!strcmp(output,"file")) //Output Mode: File Read (Multiple Sends)
                         {
                             msg_Info(intfa,"File Output\n");
                             int fileSize=0,ch=0; FILE *f; char* path="/home/nightwayne/vlc-dev/vlc/build/file.txt";
-                            
-                            //reading file size
-                            f=fopen(path,"r");
-                            while((ch=fgetc(f))!=EOF)
-                            fileSize++;
-                            msg_Info(intfa,"fileSize: %d",fileSize);
-                            fclose(f);
 
+                            //reading file size
+                            // f=fopen(path,"r");
+                            // while((ch=fgetc(f))!=EOF)
+                            // fileSize++;
+                            // msg_Info(intfa,"fileSize: %d",fileSize);
+                            // fclose(f);
+                            
                             //sending data to socket
                             char buffer[100]; int bytes_read=0, ptr=0;
                             f=fopen(path,"r");
@@ -3077,20 +3475,19 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
                                 }
                             }
                             fclose(f);
-
-                            remove(path);
-                            msg_Info(intfa,"Exit file\n");
+                            remove(path); msg_Info(intfa,"Exit file\n");
                         }
-                        else
+                        else //Output Mode: Normal (Single Send)
                         {
                             msg_Info(intfa,"Valid Argument\n");
                             send(client_fd, output, strlen(output), 0);    
                         }
+                        
                         free(output);
                     }
 
                     // 7. free up dynamically allocated data
-                    free(input); free(command); free(argumentsC);
+                    free(input); free(command); free(arguments);
                 }
             }
         }//for
@@ -3101,7 +3498,6 @@ void *clientHandling(void *threadArgument) //Polling + Client Req Handling
 }
 
 #pragma region
-//FD_CLR(client_fd, &currentSockets); //remove client_fd to current
 // Open Module
 static int Open(vlc_object_t *obj)
 {
@@ -3110,13 +3506,12 @@ static int Open(vlc_object_t *obj)
     msg_Info(intfa, "Hello World! MPD Server Started");
 
     // 1. Initialising Server
-    int server_fd;
-    struct sockaddr_in serverAddr;
+    int server_fd; struct sockaddr_in serverAddr;
 
     // 2. Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
-        perror("Error Opening Socket. Socket Failed");
+        msg_Info(intfa, "Error Opening Socket. Socket Failed");
         exit(EXIT_FAILURE);
     }
     bzero((char *)&serverAddr, sizeof(serverAddr));
@@ -3125,107 +3520,78 @@ static int Open(vlc_object_t *obj)
     int opt = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)))
     {
-        perror("setsockopt");
+        msg_Info(intfa, "setsockopt");
         exit(EXIT_FAILURE);
     }
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
-    serverAddr.sin_port = htons(PORT);
+    serverAddr.sin_family = AF_INET; serverAddr.sin_addr.s_addr = INADDR_ANY; serverAddr.sin_port = htons(PORT);
 
     // 4. Forcefully attaching socket to the port 6600(binding)
     if (bind(server_fd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
     {
-        perror("bind failed");
+        msg_Info(intfa, "bind failed");
         exit(EXIT_FAILURE);
     }
 
-    // 5. Thread Creation & Initialisation
+    // 5. Thread Creation & System Resource Allocation
+    intf_thread_t *mpd_thread = (intf_thread_t *)obj;
     intf_sys_t *p_sys = malloc(sizeof(*p_sys));
     if (unlikely(p_sys == NULL))
-        return VLC_ENOMEM;
-
-    // 6. VLC MediaLibrary, Playlist, Player, Listner Initialisation
-    intf_thread_t *intf = (intf_thread_t *)obj;
-    intf->p_sys = p_sys;
-    p_sys->server_fd = server_fd;
-    p_sys->vlc_medialibrary = vlc_ml_instance_get(obj);
-    p_sys->vlc_playlist = vlc_intf_GetMainPlaylist(intf);
-    //p_sys->vlc_player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
-    vlc_player_t *player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
-
-    // 7. Client Handling
-    int i = 0;
-    if ((i = vlc_clone(&intf->p_sys->thread, clientHandling, intf, VLC_THREAD_PRIORITY_LOW)) < 0)
     {
-        perror("clone failed");
+        msg_Info(intfa,"p_sys error");
+        return VLC_ENOMEM;
+    }
+    mpd_thread->p_sys = p_sys;
+    
+    // 6. Initialising VLC Playlist, Player, MediaLibrary. Also adding default MPD Folder here.
+    p_sys->server_fd = server_fd;
+    p_sys->vlc_playlist = vlc_intf_GetMainPlaylist(mpd_thread);
+    vlc_player_t *player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
+    p_sys->vlc_medialibrary = vlc_ml_instance_get(obj);
+    //vlc_ml_add_folder (p_sys->vlc_medialibrary,"file:///home/nightwayne/MPD");/*fixme: relative/absolute path*/
+    vlc_ml_remove_folder(p_sys->vlc_medialibrary,"file:///home/nightwayne/MPD");
+    /*not necessary, will by default look into ~/Music and ~/Video Folders of system*/
+
+    // 7. Calling Client Handling Function
+    int i = 0;
+    if ((i = vlc_clone(&mpd_thread->p_sys->thread, clientHandling, mpd_thread, VLC_THREAD_PRIORITY_LOW)) < 0)
+    {
+        msg_Info(intfa, "clone failed");
         exit(EXIT_FAILURE);
     }
     
-    // 8. Attaching Listners to Player
-    static struct vlc_player_cbs const player_cbs =
-        {
-            .on_state_changed = player_on_state_changed
-            // , 
-            // .on_buffering_changed = player_on_buffering_changed,
-            // .on_rate_changed = player_on_rate_changed,
-            // .on_position_changed = player_on_position_changed,
-        };
+    // 8. Adding Listeners to Player
+    static struct vlc_player_cbs const player_cbs = {.on_state_changed = player_on_state_changed};
     vlc_player_Lock(player);
-    p_sys->player_listener = vlc_player_AddListener(player, &player_cbs, intf);
-    if (!p_sys->player_listener)
-    {
-        vlc_player_Unlock(player);
-        goto error;
-    }
+    p_sys->player_listener = vlc_player_AddListener(player, &player_cbs, mpd_thread);
     vlc_player_Unlock(player);
-    // static struct vlc_player_aout_cbs const player_aout_cbs =
-    // {
-    //     .on_volume_changed = player_aout_on_volume_changed,
-    // };
-    // p_sys->player_aout_listener =
-    //     vlc_player_aout_AddListener(player, &player_aout_cbs, p_intf);
-    // vlc_player_Unlock(player);
-    // if (!p_sys->player_aout_listener)
-    //     goto error;
 
     // 9. Module End
     return VLC_SUCCESS;
-error:
-    if (p_sys->player_listener)
-    {
-        vlc_player_Lock(player);
-        vlc_player_RemoveListener(player, p_sys->player_listener);
-        vlc_player_Unlock(player);
-    }
-    free(p_sys);
-    return VLC_EGENERIC;
 }
 
 // Close Module
 static void Close(vlc_object_t *obj)
 {
     // 0. Module Start
-    intf_thread_t *intf = (intf_thread_t *)obj;
+    intf_thread_t *intfa = (intf_thread_t *)obj;
+    intf_sys_t *p_sys = intfa->p_sys;
 
     // 1. Freeing up resources
-    // -those dynamically allocated, not static allocation (like int i = 10;)
-    // check for appropriate dynamic allocation, I have used only static allocation
-    intf_sys_t *p_sys = intf->p_sys;
-    vlc_cancel(intf->p_sys->thread);
-    vlc_join(intf->p_sys->thread, NULL);
+    // Thread Management
+    vlc_cancel(intfa->p_sys->thread);
+    vlc_join(intfa->p_sys->thread, NULL);
+    
+    // Player and Listener Management
     vlc_player_t *player = vlc_playlist_GetPlayer(p_sys->vlc_playlist);
     vlc_player_Lock(player);
     vlc_player_RemoveListener(player, p_sys->player_listener);
-    //vlc_player_aout_RemoveListener(player, p_sys->player_aout_listener);
     vlc_player_Unlock(player);
-
-    // free(sys->vlc_medialibrary);
-    // free(sys->vlc_playlist);
-    // free(sys->vlc_player);
+    
+    // System Resources Management
     free(p_sys);
 
     // 2. Module End
-    msg_Info(intf, "Good bye MPD Server");
+    msg_Info(intfa, "Good bye MPD Server");
 }
 
 // Module Descriptor
@@ -3237,82 +3603,4 @@ vlc_module_begin()
     set_category(CAT_INTERFACE)
 vlc_module_end()
 
-/*
-msg_Info(intfa,"1");
-vlc_playlist_t *playlist=intfa->p_sys->vlc_playlist;
-msg_Info(intfa,"2");
-vlc_player_t *player=vlc_playlist_GetPlayer(playlist);
-msg_Info(intfa,"3");
-char* inp=vlc_path2uri("/home/nightwayne/Music/IDWItTakes.mp3","file");
-input_item_t *media=input_item_New(inp,"wit"); //URI file path error
-msg_Info(intfa,"4");
-//playing1
-if(player==NULL)
-msg_Info(intfa,"NN");
-if(playlist==NULL)
-msg_Info(intfa,"NNds");
-int t;
-vlc_player_Lock(player);
-msg_Info(intfa,"5");
-t=vlc_player_SetCurrentMedia(player, media);
-msg_Info(intfa,"6 %d",t);
-t=vlc_player_Start(player);
-msg_Info(intfa,"7 %d",t);
-sleep(2);
-msg_Info(intfa,"8");
-vlc_player_Stop(player);
-msg_Info(intfa,"9");
-vlc_player_Unlock(player);
-msg_Info(intfa,"10");
-input_item_Release (media);
-msg_Info(intfa,"11");
-vlc_player_Delete(player);
-msg_Info(intfa,"12");
-vlc_playlist_Delete(playlist);
-msg_Info(intfa,"13");
-*/
-/*
-static void PlaylistDoVoid(intf_thread_t *intf, int (*cb)(vlc_playlist_t *))
-{
-    vlc_playlist_t *playlist = intf->p_sys->vlc_playlist;
-    vlc_playlist_Lock(playlist);
-    msg_Info(intf,"playlistcbslock");
-    char* inp=vlc_path2uri("/home/nightwayne/Music/IDWItTakes.mp3","file");
-    input_item_t *media=input_item_New(inp,"wit"); //URI file path error
-    int i = vlc_playlist_InsertOne(playlist, 0, media);
-    msg_Info(intf,"playlistcbslockcall");
-    cb(playlist);
-    msg_Info(intf,"playlistcbsbyelock");
-    vlc_playlist_Unlock(playlist);
-}
-static void PlaylistPlay(intf_thread_t *intf)
-{
-    msg_Info(intf,"play");
-    PlaylistDoVoid(intf, vlc_playlist_Start);
-}
-static int PlaylistDoStop(vlc_playlist_t *playlist)
-{
-    vlc_playlist_Stop(playlist);
-    return 0;
-}
-static void PlaylistStop(intf_thread_t *intf)
-{
-    PlaylistDoVoid(intf, PlaylistDoStop);
-}
-*/
-/*
-    //playback testing
-    // vlc_playlist_Lock(intfa->p_sys->vlc_playlist);
-    // char* inp=vlc_path2uri("/home/nightwayne/Music/IDWItTakes.mp3","file");
-    // input_item_t *media=input_item_New(inp,"wit"); //URI file path error
-    // size_t ind=vlc_playlist_Count(intfa->p_sys->vlc_playlist);
-    // vlc_playlist_InsertOne(intfa->p_sys->vlc_playlist,ind,media);
-    // media=input_item_New("file:///home/nightwayne/Music/Natural.mp3","Nat");
-    // ind=vlc_playlist_Count(intfa->p_sys->vlc_playlist);
-    // vlc_playlist_InsertOne(intfa->p_sys->vlc_playlist,ind,media);
-    // vlc_playlist_Unlock(intfa->p_sys->vlc_playlist);
-    // playTest(intfa,media);
-    // sleep(7);
-    // pauseTest(intfa);
-*/
 #pragma endregion

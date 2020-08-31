@@ -1,14 +1,2 @@
-#exmaple files for learning
-#practice.c to be added later
-vlc__media_library.h
-functionOrganise.c
-ml.txt
-exampleFile.c
-mpdT.c
-README.md
-
-#server-client model files
-server-vlc.c
-client-vlc.c
-cl
-se
+#mpd
+mpd
